@@ -6,6 +6,7 @@
 package de.ibapl.onewire.ng;
 
 import de.ibapl.onewire.ng.request.OneWireRequest;
+import de.ibapl.onewire.ng.request.OneWireRequest.RequestState;
 import de.ibapl.onewire.ng.request.Speed;
 import de.ibapl.onewire.ng.request.communication.BitResult;
 import de.ibapl.onewire.ng.request.communication.DataToSend;
@@ -60,20 +61,28 @@ public class DecoderTest {
     public void testDecodeInitDS280B() throws IOException {
         System.out.println("decode");
         Decoder decoder = new Decoder(new ByteArrayInputStream(new byte[] {(byte)0x16,(byte)0x44, (byte)0x5A, (byte)0x00, (byte)0x93 }));
-        Object response;
-        OneWireRequest<?> request;
-        response = decoder.decode(ConfigurationWriteRequest.of(PullDownSlewRateParam.PDSRC_1_37));
-        assertEquals(PullDownSlewRateParam.PDSRC_1_37, response);
-        response = decoder.decode(ConfigurationWriteRequest.of(Write1LowTime.W1LT_10));
-        assertEquals(Write1LowTime.W1LT_10, response);
-        response = decoder.decode(ConfigurationWriteRequest.of(DataSampleOffsetAndWrite0RecoveryTime.DSO_AND_W0RT_8));
-        assertEquals(DataSampleOffsetAndWrite0RecoveryTime.DSO_AND_W0RT_8, response);
-        response = decoder.decode(ConfigurationReadRequest.of(CommandType.RBR));
-        assertEquals(RS232BaudRate.RBR_9_6, response);
-        SingleBitResponse singleBitResponse = decoder.decode(new SingleBitRequest(Speed.STANDARD, DataToSend.WRITE_0_BIT, false));
-        assertEquals(Speed.STANDARD, singleBitResponse.speed);
-        assertEquals(BitResult._1_READ_BACK, singleBitResponse.bitResult);
-        assertEquals(DataToSend.WRITE_1_OR_READ_BIT, singleBitResponse.dataToSend);
+        OneWireRequest<?> request = ConfigurationWriteRequest.of(PullDownSlewRateParam.PDSRC_1_37);
+        request.requestState = RequestState.WAIT_FOR_RESPONSE;
+        decoder.decode(request);
+        assertEquals(PullDownSlewRateParam.PDSRC_1_37, request.response);
+        request = ConfigurationWriteRequest.of(Write1LowTime.W1LT_10);
+        request.requestState = RequestState.WAIT_FOR_RESPONSE;
+        decoder.decode(request);
+        assertEquals(Write1LowTime.W1LT_10, request.response);
+        request = ConfigurationWriteRequest.of(DataSampleOffsetAndWrite0RecoveryTime.DSO_AND_W0RT_8);
+        request.requestState = RequestState.WAIT_FOR_RESPONSE;
+        decoder.decode(request);
+        assertEquals(DataSampleOffsetAndWrite0RecoveryTime.DSO_AND_W0RT_8, request.response);
+        request = ConfigurationReadRequest.of(CommandType.RBR);
+        request.requestState = RequestState.WAIT_FOR_RESPONSE;
+        decoder.decode(request);
+        assertEquals(RS232BaudRate.RBR_9_6, request.response);
+        SingleBitRequest singleBitRequest = new SingleBitRequest(Speed.STANDARD, DataToSend.WRITE_0_BIT, false);
+        singleBitRequest.requestState = RequestState.WAIT_FOR_RESPONSE;
+        decoder.decode(singleBitRequest);
+        assertEquals(Speed.STANDARD, singleBitRequest.response.speed);
+        assertEquals(BitResult._1_READ_BACK, singleBitRequest.response.bitResult);
+        assertEquals(DataToSend.WRITE_1_OR_READ_BIT, singleBitRequest.response.dataToSend);
         
 
     }
