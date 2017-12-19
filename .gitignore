@@ -1,8 +1,6 @@
-target/*
-.settings/*
-nb-configuration.xml
-.springBeans
+target
+.settings
 .project
 .classpath
-/nbproject/
-/target/
+
+/de.ibapl.onewire4j/nbproject/

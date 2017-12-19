@@ -1,0 +1,8 @@
+Export-Package: \
+ de.ibapl.onewire4j,\
+ de.ibapl.onewire4j.container,\
+ de.ibapl.onewire4j.request,\
+ de.ibapl.onewire4j.request.communication,\
+ de.ibapl.onewire4j.request.configuration,\
+ de.ibapl.onewire4j.request.data;version,\
+ de.ibapl.onewire4j.utils
