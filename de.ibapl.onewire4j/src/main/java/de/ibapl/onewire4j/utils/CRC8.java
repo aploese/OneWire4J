@@ -62,22 +62,20 @@ public class CRC8 {
      * @return true if crc's match
      */
     public static boolean checkCrc8(long data) {
-        int crc8 = 0;
-
+        byte crc8 = 0;
         for (int i = 0; i < 7; i++) {
             crc8 = CRC8_LOOKUP[(crc8 ^ ((int) (data >> (i * 8)))) & 0xFF];
         }
-
-        return (crc8 == (int) ((data >> 56) & 0x0FF));
+        return crc8 == data >> 56;
     }
 
     public static int computeCrc8(byte[] data) {
-        return computeCrc8(data, 0, data.length, 0);
+        return computeCrc8(data, 0, data.length, (byte)0);
     }
     
-    public static int computeCrc8(byte[] data, int off, int len, int seed) {
+    public static int computeCrc8(byte[] data, int off, int len, byte seed) {
 
-        int crc8 = seed;
+        byte crc8 = seed;
 
         for (int i = 0; i < len; i++) {
             crc8 = CRC8_LOOKUP[(crc8 ^ data[i + off]) & 0x0FF];

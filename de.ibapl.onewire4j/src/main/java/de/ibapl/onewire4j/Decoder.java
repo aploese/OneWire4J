@@ -49,7 +49,7 @@ import de.ibapl.onewire4j.request.communication.ResetResult;
 import de.ibapl.onewire4j.request.communication.SearchAcceleratorCommand;
 import de.ibapl.onewire4j.request.communication.SingleBitRequest;
 import de.ibapl.onewire4j.request.communication.SingleBitResponse;
-import de.ibapl.onewire4j.request.communication.Speed;
+import de.ibapl.onewire4j.request.communication.OneWireSpeed;
 import de.ibapl.onewire4j.request.configuration.ConfigurationReadRequest;
 import de.ibapl.onewire4j.request.configuration.ConfigurationRequest;
 import de.ibapl.onewire4j.request.configuration.ConfigurationWriteRequest;
@@ -263,16 +263,16 @@ public class Decoder {
 		}
 		switch (b & 0b000_0_11_00) {
 		case 0b000_0_00_00:
-			response.speed = Speed.STANDARD;
+			response.speed = OneWireSpeed.STANDARD;
 			break;
 		case 0b000_0_01_00:
-			response.speed = Speed.FLEX;
+			response.speed = OneWireSpeed.FLEX;
 			break;
 		case 0b000_0_10_00:
-			response.speed = Speed.OVERDRIVE;
+			response.speed = OneWireSpeed.OVERDRIVE;
 			break;
 		case 0b000_0_11_00:
-			response.speed = Speed.STANDARD_11;
+			response.speed = OneWireSpeed.STANDARD_11;
 			break;
 		default:
 			throw new RuntimeException("Unknown speed: 0x" + Integer.toHexString(b));

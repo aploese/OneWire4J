@@ -33,9 +33,9 @@ package de.ibapl.onewire4j.request.communication;
  * @author aploese
  */
 public class ResetDeviceRequest extends CommunicationRequest<ResetDeviceResponse> {
-	public Speed speed;
+	public OneWireSpeed speed;
 
-	public static ResetDeviceRequest of(Speed speed) {
+	public static ResetDeviceRequest of(OneWireSpeed speed) {
 		final ResetDeviceRequest result = new ResetDeviceRequest();
 		result.speed = speed;
 		return result;

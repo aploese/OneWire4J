@@ -69,7 +69,7 @@ public class CRC8Test {
 //        byte[] dataToCRC = new byte[] {(byte)0x55, (byte)0x00, (byte)0x08, (byte)0x03, (byte)0x35, (byte)0xf5, (byte)0x21, (byte)0x10};
         byte[] dataToCRC = new byte[] {(byte)0x10, (byte)0x21, (byte)0xf5, (byte)0x35, (byte)0x03, (byte)0x08, (byte)0x00, (byte)0x55 };
         int expResult = dataToCRC[7];
-        int result = CRC8.computeCrc8(dataToCRC, 0, 7, 0);
+        int result = CRC8.computeCrc8(dataToCRC, 0, 7, (byte)0);
         assertEquals(expResult, result);
         assertTrue(CRC8.checkCrc8(0x5500080335f52110L));
     }

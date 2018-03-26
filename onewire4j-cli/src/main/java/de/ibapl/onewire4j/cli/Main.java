@@ -31,6 +31,7 @@ package de.ibapl.onewire4j.cli;
 import java.io.FileOutputStream;
 import java.time.Instant;
 import java.util.LinkedList;
+import java.util.ServiceLoader;
 
 import de.ibapl.onewire4j.AdapterFactory;
 import de.ibapl.onewire4j.OneWireAdapter;
@@ -39,9 +40,9 @@ import de.ibapl.onewire4j.container.OneWireContainer;
 import de.ibapl.onewire4j.container.ReadScratchpadRequest;
 import de.ibapl.onewire4j.container.TemperatureContainer;
 import de.ibapl.spsw.api.SerialPortSocket;
+import de.ibapl.spsw.api.SerialPortSocketFactory;
 import de.ibapl.spsw.logging.LoggingSerialPortSocket;
 import de.ibapl.spsw.logging.TimeStampLogging;
-import de.ibapl.spsw.provider.SerialPortSocketFactoryImpl;
 
 /**
  *
@@ -55,9 +56,13 @@ public class Main {
 	 */
 	public static void main(String[] args) throws Exception {
 		FileOutputStream log = new FileOutputStream("/tmp/owapi-ng.log");
-		final SerialPortSocket port = SerialPortSocketFactoryImpl.singleton().createSerialPortSocket(args[0]);
+		ServiceLoader<SerialPortSocketFactory> spsFactory = ServiceLoader.load(SerialPortSocketFactory.class);
+		SerialPortSocketFactory serialPortSocketFactory = spsFactory.iterator().next();
+                System.out.println("serialPortSocketFactory " + serialPortSocketFactory.getClass().getName());
+
+		final SerialPortSocket port = serialPortSocketFactory.createSerialPortSocket(args[0]);
 		LoggingSerialPortSocket lport = LoggingSerialPortSocket.wrapWithHexOutputStream(port,
-				new FileOutputStream("/tmp/owapi-ng.csv"), false, TimeStampLogging.UTF);
+				new FileOutputStream("/tmp/owapi-ng.csv"), false, TimeStampLogging.UTC);
 		
 		try (OneWireAdapter adapter = new AdapterFactory().open(lport)) {
 			final boolean parasitePowerNeeded = TemperatureContainer.isParasitePower(adapter);

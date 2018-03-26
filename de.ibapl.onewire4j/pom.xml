@@ -25,11 +25,6 @@
             <groupId>de.ibapl.spsw</groupId>
             <artifactId>de.ibapl.spsw.api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>de.ibapl.spsw</groupId>
-            <artifactId>de.ibapl.spsw.provider</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
     <build>
         <plugins>

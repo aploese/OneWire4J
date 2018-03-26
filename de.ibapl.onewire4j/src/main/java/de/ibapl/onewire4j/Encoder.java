@@ -38,7 +38,7 @@ import de.ibapl.onewire4j.request.communication.PulseRequest;
 import de.ibapl.onewire4j.request.communication.ResetDeviceRequest;
 import de.ibapl.onewire4j.request.communication.SearchAcceleratorCommand;
 import de.ibapl.onewire4j.request.communication.SingleBitRequest;
-import de.ibapl.onewire4j.request.communication.Speed;
+import de.ibapl.onewire4j.request.communication.OneWireSpeed;
 import de.ibapl.onewire4j.request.configuration.ConfigurationReadRequest;
 import de.ibapl.onewire4j.request.configuration.ConfigurationRequest;
 import de.ibapl.onewire4j.request.configuration.ConfigurationWriteRequest;
@@ -164,7 +164,7 @@ public class Encoder {
 		return encodeSpeed(request.speed) | 0b1100_00_01; 
 	}
 
-	private int encodeSpeed(Speed speed) {
+	private int encodeSpeed(OneWireSpeed speed) {
 		switch (speed) {
 		case STANDARD:
 			return 0b0000_00_00;

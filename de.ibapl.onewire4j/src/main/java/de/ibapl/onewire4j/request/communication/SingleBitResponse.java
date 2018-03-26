@@ -35,5 +35,5 @@ package de.ibapl.onewire4j.request.communication;
 public class SingleBitResponse {
 	public BitResult bitResult;
 	public DataToSend dataToSend;
-	public Speed speed;
+	public OneWireSpeed speed;
 }

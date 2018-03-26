@@ -35,10 +35,10 @@ package de.ibapl.onewire4j.request.communication;
  */
 public class SingleBitRequest extends CommunicationRequest<SingleBitResponse> {
 	public DataToSend dataToSend;
-	public Speed speed;
+	public OneWireSpeed speed;
 	public boolean armPowerDelivery;
 
-	public SingleBitRequest(Speed speed, DataToSend dataToSend, boolean armPowerDelivery) {
+	public SingleBitRequest(OneWireSpeed speed, DataToSend dataToSend, boolean armPowerDelivery) {
 		this.speed = speed;
 		this.dataToSend = dataToSend;
 		this.armPowerDelivery = armPowerDelivery;

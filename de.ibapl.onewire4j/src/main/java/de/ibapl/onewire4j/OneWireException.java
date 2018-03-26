@@ -1,5 +1,7 @@
 package de.ibapl.onewire4j;
 
+import java.io.IOException;
+
 /*-
  * #%L
  * OneWire4J
@@ -33,8 +35,7 @@ package de.ibapl.onewire4j;
  *
  * @author aploese
  */
-public class OneWireException
-   extends Exception
+public class OneWireException extends IOException
 {
 
     private static final long serialVersionUID = 4152223395210757706L;

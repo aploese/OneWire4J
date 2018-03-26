@@ -1,5 +1,3 @@
-package de.ibapl.onewire4j;
-
 /*-
  * #%L
  * OneWire4J
@@ -27,12 +25,13 @@ package de.ibapl.onewire4j;
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  * #L%
  */
+package de.ibapl.onewire4j;
+
 
 import de.ibapl.onewire4j.container.OneWireContainer;
 import de.ibapl.onewire4j.request.OneWireRequest;
-import de.ibapl.onewire4j.request.communication.Speed;
+import de.ibapl.onewire4j.request.communication.OneWireSpeed;
 import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.function.Consumer;
 
@@ -42,7 +41,7 @@ import de.ibapl.spsw.api.SerialPortSocket;
  *
  * @author aploese
  */
-public interface OneWireAdapter extends Closeable {
+public interface OneWireAdapter extends AutoCloseable {
 	
 	void open() throws IOException;
 	
@@ -54,7 +53,7 @@ public interface OneWireAdapter extends Closeable {
 	
 	void searchDevices(Consumer<OneWireContainer> d, boolean init) throws IOException;
 
-	Speed getSpeedFromBaudrate();
+	OneWireSpeed getSpeedFromBaudrate();
 	
 	void sendMatchRomRequest(long address) throws IOException ;
 
@@ -62,9 +61,9 @@ public interface OneWireAdapter extends Closeable {
 	
 	byte[] sendRawDataRequest(byte[] data) throws IOException;
 	
-	byte sendByteWithPower(byte b, StrongPullupDuration strongPullupDuration, Speed speed) throws IOException;
+	byte sendByteWithPower(byte b, StrongPullupDuration strongPullupDuration, OneWireSpeed speed) throws IOException;
 
-	byte sendByte(byte b, Speed speed) throws IOException;
+	byte sendByte(byte b, OneWireSpeed speed) throws IOException;
 
 	<R> R sendCommand(OneWireRequest<R> request) throws IOException;
 

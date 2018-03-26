@@ -36,7 +36,7 @@ import de.ibapl.onewire4j.request.VoidResponse;
  */
 public class SearchAcceleratorCommand extends CommunicationRequest<VoidResponse> {
 
-	public static SearchAcceleratorCommand of(SearchAccelerator accelerator, Speed speed) {
+	public static SearchAcceleratorCommand of(SearchAccelerator accelerator, OneWireSpeed speed) {
 		final SearchAcceleratorCommand result = new SearchAcceleratorCommand();
 		result.searchAccelerator = accelerator;
 		result.speed = speed;
@@ -44,6 +44,6 @@ public class SearchAcceleratorCommand extends CommunicationRequest<VoidResponse>
 	}
 
 	public SearchAccelerator searchAccelerator;
-	public Speed speed;
+	public OneWireSpeed speed;
 	
 }

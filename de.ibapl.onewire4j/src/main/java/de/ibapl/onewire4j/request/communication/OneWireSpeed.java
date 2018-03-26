@@ -32,7 +32,7 @@ package de.ibapl.onewire4j.request.communication;
  *
  * @author aploese
  */
-public enum Speed {
+public enum OneWireSpeed {
 	STANDARD,
 	FLEX,
 	OVERDRIVE,

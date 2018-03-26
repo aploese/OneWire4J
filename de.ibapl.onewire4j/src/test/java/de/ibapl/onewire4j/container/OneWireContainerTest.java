@@ -64,11 +64,18 @@ public class OneWireContainerTest {
      * Test of isAsddressValid method, of class OneWireContainer.
      */
     @Test
-    public void testIsAsddressValid() {
-        System.out.println("isAsddressValid");
+    public void testIsAsddressValid_0x5500080335f52110L() {
+        System.out.println("isAsddressValid_0x5500080335f52110L");
         assertTrue(OneWireContainer.isAsddressValid(0x5500080335f52110L));
     }
 
+    @Test
+    public void testIsAsddressValid_0x970008016fdcd010L() {
+        System.out.println("isAsddressValid_0x970008016fdcd010L");
+        assertTrue(OneWireContainer.isAsddressValid(0x970008016fdcd010L));
+    }
+
+        
     /**
      * Test of addressToString method, of class OneWireContainer.
      */
@@ -101,6 +108,15 @@ public class OneWireContainerTest {
         byte[] address = new byte[] {(byte)0x10, (byte)0x21, (byte)0xf5, (byte)0x35, (byte)0x03, (byte)0x08, (byte)0x00, (byte)0x55 };
         long expResult = 0x5500080335f52110L;
         long result = OneWireContainer.addressOf(address);
+        assertEquals(expResult, result);
+    }
+    
+    @Test
+    public void testAddress_f8000001ab449128() {
+        
+        System.out.println("testAddress_f8000001ab449128");
+        long expResult = 0xf8000001ab449128L;
+        long result = Long.parseUnsignedLong("f8000001ab449128", 16);
         assertEquals(expResult, result);
     }
     

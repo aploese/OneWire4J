@@ -33,7 +33,7 @@ import de.ibapl.onewire4j.request.OneWireRequest;
 import de.ibapl.onewire4j.request.communication.BitResult;
 import de.ibapl.onewire4j.request.communication.DataToSend;
 import de.ibapl.onewire4j.request.communication.SingleBitRequest;
-import de.ibapl.onewire4j.request.communication.Speed;
+import de.ibapl.onewire4j.request.communication.OneWireSpeed;
 import de.ibapl.onewire4j.request.configuration.CommandType;
 import de.ibapl.onewire4j.request.configuration.ConfigurationReadRequest;
 import de.ibapl.onewire4j.request.configuration.ConfigurationWriteRequest;
@@ -98,10 +98,10 @@ public class DecoderTest {
         request.requestState = OneWireRequest.RequestState.WAIT_FOR_RESPONSE;
         decoder.decode(request);
         assertEquals(RS232BaudRate.RBR_9_6, request.response);
-        SingleBitRequest singleBitRequest = new SingleBitRequest(Speed.STANDARD, DataToSend.WRITE_0_BIT, false);
+        SingleBitRequest singleBitRequest = new SingleBitRequest(OneWireSpeed.STANDARD, DataToSend.WRITE_0_BIT, false);
         singleBitRequest.requestState = OneWireRequest.RequestState.WAIT_FOR_RESPONSE;
         decoder.decode(singleBitRequest);
-        assertEquals(Speed.STANDARD, singleBitRequest.response.speed);
+        assertEquals(OneWireSpeed.STANDARD, singleBitRequest.response.speed);
         assertEquals(BitResult._1_READ_BACK, singleBitRequest.response.bitResult);
         assertEquals(DataToSend.WRITE_1_OR_READ_BIT, singleBitRequest.response.dataToSend);
         

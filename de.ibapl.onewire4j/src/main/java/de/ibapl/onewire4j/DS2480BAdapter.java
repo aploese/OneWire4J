@@ -43,7 +43,7 @@ import de.ibapl.onewire4j.request.communication.SearchAccelerator;
 import de.ibapl.onewire4j.request.communication.SearchAcceleratorCommand;
 import de.ibapl.onewire4j.request.communication.SingleBitRequest;
 import de.ibapl.onewire4j.request.communication.SingleBitResponse;
-import de.ibapl.onewire4j.request.communication.Speed;
+import de.ibapl.onewire4j.request.communication.OneWireSpeed;
 import de.ibapl.onewire4j.request.configuration.CommandType;
 import de.ibapl.onewire4j.request.configuration.ConfigurationReadRequest;
 import de.ibapl.onewire4j.request.configuration.ConfigurationWriteRequest;
@@ -63,18 +63,22 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.function.Consumer;
 
-import de.ibapl.spsw.api.Baudrate;
 import de.ibapl.spsw.api.DataBits;
 import de.ibapl.spsw.api.FlowControl;
 import de.ibapl.spsw.api.Parity;
 import de.ibapl.spsw.api.SerialPortSocket;
+import de.ibapl.spsw.api.Speed;
 import de.ibapl.spsw.api.StopBits;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author aploese
  */
 public class DS2480BAdapter implements OneWireAdapter {
+    
+    private final static Logger LOG = Logger.getLogger(DS2480BAdapter.class.getCanonicalName());
 
 	public enum State {
 		UNKNOWN, INITIALIZING, COMMAND, DATA;
@@ -86,9 +90,9 @@ public class DS2480BAdapter implements OneWireAdapter {
 	private State state = State.UNKNOWN;
 	private Encoder encoder;
 	private Decoder decoder;
-    private Speed speedFromBaudrate = Speed.FLEX;
+    private OneWireSpeed speedFromBaudrate = OneWireSpeed.FLEX;
 	
-	public Speed getSpeedFromBaudrate() {
+	public OneWireSpeed getSpeedFromBaudrate() {
 		return speedFromBaudrate;
 	}
 	
@@ -130,7 +134,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 			}
 			break;
 		default:
-			throw new RuntimeException("Can't hande request and state");
+			throw new OneWireException("Can't hande request and state");
 		}
 		encoder.encode(request);
 		os.flush();
@@ -154,7 +158,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 				}
 				break;
 			default:
-				throw new RuntimeException("Can't hande request and state");
+				throw new OneWireException("Can't hande request and state");
 			}
 			encoder.encode(request);
 		}
@@ -201,13 +205,13 @@ public class DS2480BAdapter implements OneWireAdapter {
 				ConfigurationWriteRequest.of(Write1LowTime.W1LT_10),
 				 ConfigurationWriteRequest.of(DataSampleOffsetAndWrite0RecoveryTime.DSO_AND_W0RT_8),
 				                    ConfigurationReadRequest.of(CommandType.RBR),
-				new SingleBitRequest(Speed.STANDARD, DataToSend.WRITE_1_OR_READ_BIT, false));
+				new SingleBitRequest(OneWireSpeed.STANDARD, DataToSend.WRITE_1_OR_READ_BIT, false));
 
 	}
 
 	@Override
 	public void open() throws IOException {
-		serialPort.openRaw(Baudrate.B9600, DataBits.DB_8, StopBits.SB_1, Parity.NONE, FlowControl.getFC_NONE());
+		serialPort.open(Speed._9600_BPS, DataBits.DB_8, StopBits.SB_1, Parity.NONE, FlowControl.getFC_NONE());
 		serialPort.setTimeouts(100, 1000, 1000);
 		is = new BufferedInputStream(serialPort.getInputStream(), 64);
 		os = new BufferedOutputStream(serialPort.getOutputStream(), 64);
@@ -245,7 +249,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 				return; 
 			}
 			if (!OneWireContainer.isAsddressValid(searchIterator.getAddress())) {
-				throw new RuntimeException("SearchError! invalid address: " + Long.toHexString(searchIterator.getAddress()));
+                            LOG.log(Level.WARNING, "SearchError! invalid address: {0}", OneWireContainer.addressToString(searchIterator.getAddress()));
 			}
 			c.accept(searchIterator.getAddress());
 		}
@@ -276,7 +280,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 
 	//DODO Use Duration??? and Infinite Reset???
 	@Override
-	public byte sendByteWithPower(byte b, StrongPullupDuration strongPullupDuration, Speed speed) throws IOException {
+	public byte sendByteWithPower(byte b, StrongPullupDuration strongPullupDuration, OneWireSpeed speed) throws IOException {
 		CommandRequest<?>[] requests = new CommandRequest[9];
 		requests[0] = ConfigurationWriteRequest.of(strongPullupDuration);
 		for (int i = 0; i < 8; i++) {
@@ -305,7 +309,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 	}
 
 	@Override
-	public byte sendByte(byte b, Speed speed) throws IOException {
+	public byte sendByte(byte b, OneWireSpeed speed) throws IOException {
 		CommandRequest<?>[] requests = new CommandRequest[8];
 		for (int i = 0; i < 8; i++) {
 			final SingleBitRequest sbr = new SingleBitRequest();
