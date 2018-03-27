@@ -89,10 +89,9 @@ public class Decoder {
 	}
 
 	public <R> R decode(OneWireRequest<R> request) throws IOException {
-		if (request.requestState != RequestState.WAIT_FOR_RESPONSE) {
-			throw new RuntimeException("Request in wrong state");
-		}
-		if (request instanceof CommandRequest) {
+			request.throwIfNot(RequestState.WAIT_FOR_RESPONSE);
+			
+			if (request instanceof CommandRequest) {
 			if (request instanceof ConfigurationRequest) {
 				if (request instanceof ConfigurationReadRequest) {
 					request.response = decodeConfigurationReadResponse((ConfigurationReadRequest<R>) request,
@@ -160,7 +159,7 @@ public class Decoder {
 		} else {
 			throw new RuntimeException("Unknown subtype of CommandRequest: " + request.getClass());
 		}
-		request.requestState = RequestState.SUCCESS;
+		request.success();
 		return request.response;
 	}
 
@@ -249,7 +248,6 @@ public class Decoder {
 		return response;
 	}
 
-	@SuppressWarnings("unchecked")
 	SingleBitResponse decodeSingleBitResponse(SingleBitRequest request, final int b) {
 		if ((b & 0b111_0_00_00) != 0b100_0_00_00) {
 			throw new RuntimeException("No SingleBitResponse: 0x" + Integer.toHexString(b));

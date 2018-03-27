@@ -44,7 +44,13 @@ public abstract class OneWireDevice implements OneWireContainer {
 		this.address = address;
 	}
 
-	public static OneWireDevice fromAdress(long address, boolean init) {
+	/**
+	 * Factory method to create OneWire device from their address.
+	 * 
+	 * @param address the address used to create the device.
+	 * @return
+	 */
+	public static OneWireDevice fromAdress(long address) {
 		switch ((int) address & 0xff) {
 		case 0x10:
 			return new OneWireDevice10(address);

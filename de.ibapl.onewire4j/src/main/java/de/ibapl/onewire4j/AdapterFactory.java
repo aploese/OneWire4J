@@ -32,15 +32,27 @@ import java.io.IOException;
 import de.ibapl.spsw.api.SerialPortSocket;
 
 /**
- *
+ * Factory to choose a implementation {@link OneWireAdapter}.
+ * 
  * @author Arne Plöse
  */
 public class AdapterFactory {
 
-		public OneWireAdapter open(SerialPortSocket serialPort) throws IOException {
-			final DS2480BAdapter result = new DS2480BAdapter();
-			result.setSerialPort(serialPort);
-			result.open();
-			return result;
-		}
+	/**
+	 * Choose and create an adapter, open the port and return the opened adapter.
+	 * 
+	 * 
+	 * @param serialPortSocketFactory
+	 *            the factory to use.
+	 * @param portname
+	 *            the name of the port to open.
+	 * @return the created and opened adapter.
+	 * @throws IOException
+	 *             on error.
+	 */
+	public OneWireAdapter open(SerialPortSocket serialPortSocket) throws IOException {
+		final DS2480BAdapter result = new DS2480BAdapter(serialPortSocket);
+		result.open();
+		return result;
+	}
 }

@@ -84,23 +84,28 @@ public class DecoderTest {
         System.out.println("decode");
         Decoder decoder = new Decoder(new ByteArrayInputStream(new byte[] {(byte)0x16,(byte)0x44, (byte)0x5A, (byte)0x00, (byte)0x93 }));
         OneWireRequest<?> request = ConfigurationWriteRequest.of(PullDownSlewRateParam.PDSRC_1_37);
-        request.requestState = OneWireRequest.RequestState.WAIT_FOR_RESPONSE;
+        
+        request.waitForResponse();
         decoder.decode(request);
         assertEquals(PullDownSlewRateParam.PDSRC_1_37, request.response);
         request = ConfigurationWriteRequest.of(Write1LowTime.W1LT_10);
-        request.requestState = OneWireRequest.RequestState.WAIT_FOR_RESPONSE;
+        
+        request.waitForResponse();
         decoder.decode(request);
         assertEquals(Write1LowTime.W1LT_10, request.response);
         request = ConfigurationWriteRequest.of(DataSampleOffsetAndWrite0RecoveryTime.DSO_AND_W0RT_8);
-        request.requestState = OneWireRequest.RequestState.WAIT_FOR_RESPONSE;
+        
+        request.waitForResponse();
         decoder.decode(request);
         assertEquals(DataSampleOffsetAndWrite0RecoveryTime.DSO_AND_W0RT_8, request.response);
         request = ConfigurationReadRequest.of(CommandType.RBR);
-        request.requestState = OneWireRequest.RequestState.WAIT_FOR_RESPONSE;
+        
+        request.waitForResponse();
         decoder.decode(request);
         assertEquals(SerialPortSpeed.SPS_9_6, request.response);
         SingleBitRequest singleBitRequest = new SingleBitRequest(OneWireSpeed.STANDARD, DataToSend.WRITE_0_BIT, false);
-        singleBitRequest.requestState = OneWireRequest.RequestState.WAIT_FOR_RESPONSE;
+
+        request.waitForResponse();
         decoder.decode(singleBitRequest);
         assertEquals(OneWireSpeed.STANDARD, singleBitRequest.response.speed);
         assertEquals(BitResult._1_READ_BACK, singleBitRequest.response.bitResult);

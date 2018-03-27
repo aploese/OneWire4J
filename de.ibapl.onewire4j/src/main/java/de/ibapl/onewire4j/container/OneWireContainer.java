@@ -34,43 +34,42 @@ import de.ibapl.onewire4j.utils.CRC8;
  * @author Arne Plöse
  */
 public interface OneWireContainer {
-	
-    	public static boolean isAsddressValid(long address) {
+
+	public static boolean isAsddressValid(long address) {
 		return CRC8.checkCrc8(address);
-                //TODO  The DS28E04 has a pin selectable ROM ID input. However,
+		// TODO The DS28E04 has a pin selectable ROM ID input. However,
 		// the CRC8 for the ROM ID assumes that the selecatable bits
 		// are always 1.
 	}
-        
-        public static String addressToString(long address) {
-            return String.format("%08x", address);
-        }
 
-    public static byte[] arrayOfLong(final long address) {
-        final byte[] result = new byte[8];
-        result[0] = (byte)(address & 0xFF);
-        result[1] = (byte)((address >> 8) & 0xFF);
-        result[2] = (byte)((address >> 16) & 0xFF);
-        result[3] = (byte)((address >> 24) & 0xFF);
-        result[4] = (byte)((address >> 32) & 0xFF);
-        result[5] = (byte)((address >> 40) & 0xFF);
-        result[6] = (byte)((address >> 48) & 0xFF);
-        result[7] = (byte)((address >> 56) & 0xFF);
-        return result;
-    }
-    
-    public static long addressOf(final byte[] address) {
-        long result = (long)(address[7] & 0xFF) << 56;
-        result |= (long)(address[6] & 0xFF) << 48;
-        result |= (long)(address[5] & 0xFF) << 40;
-        result |= (long)(address[4] & 0xFF) << 32;
-        result |= (long)(address[3] & 0xFF) << 24;
-        result |= (long)(address[2] & 0xFF) << 16;
-        result |= (long)(address[1] & 0xFF) << 8;
-        result |= address[0] & 0xFF;
-        return result;
-    }
-        
+	public static String addressToString(long address) {
+		return String.format("%08x", address);
+	}
+
+	public static byte[] arrayOfLong(final long address) {
+		final byte[] result = new byte[8];
+		result[0] = (byte) (address & 0xFF);
+		result[1] = (byte) ((address >> 8) & 0xFF);
+		result[2] = (byte) ((address >> 16) & 0xFF);
+		result[3] = (byte) ((address >> 24) & 0xFF);
+		result[4] = (byte) ((address >> 32) & 0xFF);
+		result[5] = (byte) ((address >> 40) & 0xFF);
+		result[6] = (byte) ((address >> 48) & 0xFF);
+		result[7] = (byte) ((address >> 56) & 0xFF);
+		return result;
+	}
+
+	public static long addressOf(final byte[] address) {
+		long result = (long) (address[7] & 0xFF) << 56;
+		result |= (long) (address[6] & 0xFF) << 48;
+		result |= (long) (address[5] & 0xFF) << 40;
+		result |= (long) (address[4] & 0xFF) << 32;
+		result |= (long) (address[3] & 0xFF) << 24;
+		result |= (long) (address[2] & 0xFF) << 16;
+		result |= (long) (address[1] & 0xFF) << 8;
+		result |= address[0] & 0xFF;
+		return result;
+	}
 
 	long getAddress();
 

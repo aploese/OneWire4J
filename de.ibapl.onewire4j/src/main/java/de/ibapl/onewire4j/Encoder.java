@@ -77,9 +77,8 @@ public class Encoder {
 	}
 
 	public <R> void encode(OneWireRequest<R> request) throws IOException {
-		if (request.requestState != RequestState.READY_TO_SEND) {
-			throw new RuntimeException("Wrong state");
-		}
+		request.throwIfNot(RequestState.READY_TO_SEND);
+		
 		if (request instanceof CommandRequest) {
 			if (request instanceof ConfigurationRequest) {
 				if (request instanceof ConfigurationReadRequest) {
@@ -121,7 +120,7 @@ public class Encoder {
 		} else {
 			throw new RuntimeException("Unknown subtype of CommandRequest: " + request.getClass());
 		}
-		request.requestState = RequestState.WAIT_FOR_RESPONSE;
+		request.waitForResponse();
 	}
 
 	int encodeConfigurationReadRequest(ConfigurationReadRequest<?> configurationCommand) throws IOException {

@@ -27,25 +27,71 @@
  */
 package de.ibapl.onewire4j.request;
 
+import de.ibapl.onewire4j.Decoder;
+import de.ibapl.onewire4j.Encoder;
+
 /**
- * A 1-wire command request or response
+ * A 1-wire command request with response.
  * 
  * @author Arne Plöse
+ * 
+ * @param <R> the type of the response.
  */
 public class OneWireRequest<R> {
+	/**
+	 * The internal state of this request.
+	 * 
+	 * @author aploese
+	 *
+	 */
 	public enum RequestState {
 		READY_TO_SEND,
 		WAIT_FOR_RESPONSE,
 		SUCCESS;
 	}
 	
-	public RequestState requestState = RequestState.READY_TO_SEND;
+	/**
+     * This will be set by the {@linkplain Encoder} or {@linkplain Decoder} to mark the current state of that request.
+	 * 
+	 */
+	protected RequestState requestState = RequestState.READY_TO_SEND;
 
     public R response;
 
+	/**
+	 * Sets the internal state to {@linkplain RequestState#READY_TO_SEND}.
+     * 
+     * @return {@code this} for method chaining.
+     */
     public OneWireRequest<R> resetState() {
 		this.requestState = RequestState.READY_TO_SEND;
     	return this;
 	}
 
+	/**
+	 * Sets the internal state to {@linkplain RequestState#SUCCESS}.
+	 */
+    public void success() {
+    	requestState = RequestState.SUCCESS;
+    }
+    
+    /**
+     * Checks state and throws IllegalArgumentException if not in expectedRequestState.
+     * 
+     * @param expectedRequestState the expected {@linkplain RequestState}
+     * 
+     * @throws IllegalArgumentException if not in requestState.
+     */
+	public void throwIfNot(RequestState expectedRequestState) {
+		if (this.requestState != expectedRequestState) {
+			throw new IllegalStateException("Request state not: " + expectedRequestState + " but was: " + this.requestState);
+		}
+	}
+
+	/**
+	 * Sets the internal state to {@linkplain RequestState#WAIT_FOR_RESPONSE}.
+	 */
+	public void waitForResponse() {
+    	requestState = RequestState.WAIT_FOR_RESPONSE;
+	}
 }

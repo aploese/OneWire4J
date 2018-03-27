@@ -29,49 +29,82 @@ package de.ibapl.onewire4j;
 
 import java.io.IOException;
 import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 
 import de.ibapl.onewire4j.container.OneWireContainer;
 import de.ibapl.onewire4j.request.OneWireRequest;
 import de.ibapl.onewire4j.request.communication.OneWireSpeed;
 import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
-import de.ibapl.spsw.api.SerialPortSocket;
 
 /**
- *
+ * 
  * @author Arne Plöse
  */
 public interface OneWireAdapter extends AutoCloseable {
-	
+
+	/**
+	 * Open the port with the default parameters.
+	 * 
+	 * @throws IOException
+	 *             if the port can't be opened.
+	 */
 	void open() throws IOException;
-	
-	void setSerialPort(SerialPortSocket serialPort);
-	
+
+	/**
+	 * Returns the open state of the serial port.
+	 * 
+	 * @return true if open.
+	 */
 	boolean isOpen();
 
-	void searchDevices(Consumer<Long> c) throws IOException;
-	
-	void searchDevices(Consumer<OneWireContainer> d, boolean init) throws IOException;
+	/**
+	 * Search devices connected to the OneWire bus. If a device is found, the
+	 * {@linkplain LongConsumer#accept(long)} is called with the address.
+	 * This avoids the consrtuction of an {@linkplain OneWireContainer}.
+	 * 
+	 * @param longConsumer
+	 *            the functional interface which accept method to call.
+	 * @throws IOException
+	 *             if an error happens.
+	 */
+	void searchDevices(LongConsumer longConsumer) throws IOException;
 
+	/**
+	 * Search devices connected to the OneWire bus. If a device is found, the
+	 * {@linkplain Consumer#accept(Object)} is called with the {@linkplain OneWireContainer}.
+	 * 
+	 * @param consumer
+	 *            the functional interface which accept method to call.
+	 * @throws IOException
+	 *             if an error happens.
+	 */
+	void searchDevices(Consumer<OneWireContainer> consumer) throws IOException;
+
+	/**
+	 * Returns the current {@linkplain OneWireSpeed}.
+	 * 
+	 * @return the current {@linkplain OneWireSpeed}.
+	 */
 	OneWireSpeed getSpeedFromBaudrate();
-	
-	void sendMatchRomRequest(long address) throws IOException ;
+
+	void sendMatchRomRequest(long address) throws IOException;
 
 	void sendReset() throws IOException;
-	
+
 	byte[] sendRawDataRequest(byte[] data) throws IOException;
-	
+
 	byte sendByteWithPower(byte b, StrongPullupDuration strongPullupDuration, OneWireSpeed speed) throws IOException;
 
 	byte sendByte(byte b, OneWireSpeed speed) throws IOException;
 
 	<R> R sendCommand(OneWireRequest<R> request) throws IOException;
 
-	void sendCommands(OneWireRequest<?>[] requests) throws IOException;
-	
+	void sendCommands(OneWireRequest<?>... requests) throws IOException;
+
 	void sendTerminatePulse() throws IOException;
 
 	void sendSkipRomRequest() throws IOException;
 
 	byte sendReadByteRequest() throws IOException;
-	
+
 }

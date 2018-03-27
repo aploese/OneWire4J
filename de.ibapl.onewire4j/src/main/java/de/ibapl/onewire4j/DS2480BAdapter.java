@@ -27,13 +27,13 @@
  */
 package de.ibapl.onewire4j;
 
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -73,51 +73,204 @@ import de.ibapl.spsw.api.Speed;
 import de.ibapl.spsw.api.StopBits;
 
 /**
- *
+ * This class provides an implementation used for accessing the DS2480B.
+ * 
  * @author Arne Plöse
  */
 public class DS2480BAdapter implements OneWireAdapter {
-    
-    private final static Logger LOG = Logger.getLogger(DS2480BAdapter.class.getCanonicalName());
 
 	public enum State {
 		UNKNOWN, INITIALIZING, COMMAND, DATA;
 	}
 
-	private SerialPortSocket serialPort;
+	private final static Logger LOG = Logger.getLogger(DS2480BAdapter.class.getCanonicalName());
+
+	private Decoder decoder;
+	private Encoder encoder;
 	private InputStream is;
 	private OutputStream os;
+	private final SerialPortSocket serialPort;
+	private OneWireSpeed speedFromBaudrate = OneWireSpeed.FLEX;
 	private State state = State.UNKNOWN;
-	private Encoder encoder;
-	private Decoder decoder;
-    private OneWireSpeed speedFromBaudrate = OneWireSpeed.FLEX;
-	
+
+	/**
+	 * Creates a new instance ans sets the SerialPortSocket to use.
+	 * 
+	 * @param serialPortSocket the {@linkplain SerialPortSocket} to use.
+	 */
+	public DS2480BAdapter(SerialPortSocket serialPortSocket) {
+		this.serialPort = serialPortSocket;
+	}
+
+	@Override
+	public void close() throws IOException {
+		serialPort.close();
+	}
+
 	@Override
 	public OneWireSpeed getSpeedFromBaudrate() {
 		return speedFromBaudrate;
 	}
-	
-	/**
-	 * Set the state and write the switch to bytes as needed
-	 * @param state
-	 * @throws IOException
-	 */
-	private void setState(State state) throws IOException {
-		final State old = this.state;
-		this.state = state;
-		if (old == State.INITIALIZING) {
-			return;
+
+	protected void init() throws IOException {
+		// Taken from AN192 Figure 2
+		setState(State.INITIALIZING);
+		serialPort.sendBreak(2);
+
+		try {
+			Thread.sleep(2);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
 		}
-		switch (state) {
-		case COMMAND:
-			os.write(Encoder.SWITCH_TO_COMMAND_MODE_BYTE);
-			break;
-		case DATA:
-			os.write(Encoder.SWITCH_TO_DATA_MODE_BYTE);
-			break;
-		default:
-			break;
+
+		readGarbage();
+		os.write(Encoder.RESET_CMD);
+		os.flush();
+		try {
+			Thread.sleep(2);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
 		}
+		setState(State.COMMAND);
+
+		sendCommands(ConfigurationWriteRequest.of(PullDownSlewRateParam.PDSRC_1_37),
+				ConfigurationWriteRequest.of(Write1LowTime.W1LT_10),
+				ConfigurationWriteRequest.of(DataSampleOffsetAndWrite0RecoveryTime.DSO_AND_W0RT_8),
+				ConfigurationReadRequest.of(CommandType.RBR),
+				new SingleBitRequest(OneWireSpeed.STANDARD, DataToSend.WRITE_1_OR_READ_BIT, false));
+
+	}
+
+	@Override
+	public boolean isOpen() {
+		return serialPort == null ? false : serialPort.isOpen();
+	}
+
+	@Override
+	public void open() throws IOException {
+		try {
+			serialPort.open(Speed._9600_BPS, DataBits.DB_8, StopBits.SB_1, Parity.NONE, FlowControl.getFC_NONE());
+			serialPort.setTimeouts(100, 1000, 1000);
+			is = new BufferedInputStream(serialPort.getInputStream(), 64);
+			os = new BufferedOutputStream(serialPort.getOutputStream(), 64);
+			encoder = new Encoder(os);
+			decoder = new Decoder(is);
+			init();
+		} catch (Exception e) {
+			//Clean up
+			is = null;
+			os = null;
+			encoder = null;
+			decoder = null;
+			if (serialPort.isOpen()) {
+				serialPort.close();
+			}
+			throw e;
+		}
+	}
+
+	protected void readGarbage() throws IOException {
+		if (is.available() > 0) {
+			is.read(new byte[is.available()]);
+		}
+	}
+
+	@Override
+	public void searchDevices(LongConsumer longConsumer) throws IOException {
+		final OWSearchIterator searchIterator = new OWSearchIterator();
+		final RawDataRequest searchCommandData = new RawDataRequest(16);
+		final SearchCommand searchCommand = new SearchCommand();
+		while (!searchIterator.isSearchFinished()) {
+			sendCommand(ResetDeviceRequest.of(speedFromBaudrate));
+			sendCommands(searchCommand.resetState(),
+					SearchAcceleratorCommand.of(SearchAccelerator.ON, speedFromBaudrate),
+					searchCommandData.resetState(),
+					SearchAcceleratorCommand.of(SearchAccelerator.OFF, speedFromBaudrate));
+
+			searchIterator.interpretSearch(searchCommandData);
+			// check results
+			if (searchIterator.getAddress() == 0xffffffffffffffffL) {
+				// nothing found
+				return;
+			}
+			if (!OneWireContainer.isAsddressValid(searchIterator.getAddress())) {
+				LOG.log(Level.WARNING, "SearchError! invalid address: {0}",
+						OneWireContainer.addressToString(searchIterator.getAddress()));
+			}
+			longConsumer.accept(searchIterator.getAddress());
+		}
+	}
+
+	@Override
+	public void searchDevices(Consumer<OneWireContainer> consumer) throws IOException {
+		searchDevices((long address) -> {
+			final OneWireDevice device = OneWireDevice.fromAdress(address);
+			try {
+				device.init(this);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			consumer.accept(device);
+		});
+	}
+
+	@Override
+	public byte sendByte(byte b, OneWireSpeed speed) throws IOException {
+		CommandRequest<?>[] requests = new CommandRequest[8];
+		for (int i = 0; i < 8; i++) {
+			final SingleBitRequest sbr = new SingleBitRequest();
+			sbr.dataToSend = (b & 0x01) == 0x01 ? DataToSend.WRITE_1_OR_READ_BIT : DataToSend.WRITE_0_BIT;
+			b >>= 1;
+			sbr.speed = speed;
+			sbr.armPowerDelivery = false;
+			requests[i] = sbr;
+		}
+		sendCommands(requests);
+		byte result = 0;
+		for (int i = 0; i < 8; i++) {
+			final SingleBitResponse sbr = ((SingleBitRequest) requests[i]).response;
+			switch (sbr.bitResult) {
+			case _O_READ_BACK:
+				break;
+			case _1_READ_BACK:
+				result |= (byte) (0x01 << i);
+				break;
+			default:
+				throw new RuntimeException();
+			}
+		}
+		return result;
+	}
+
+	// DODO Use Duration??? and Infinite Reset???
+	@Override
+	public byte sendByteWithPower(byte b, StrongPullupDuration strongPullupDuration, OneWireSpeed speed)
+			throws IOException {
+		CommandRequest<?>[] requests = new CommandRequest[9];
+		requests[0] = ConfigurationWriteRequest.of(strongPullupDuration);
+		for (int i = 0; i < 8; i++) {
+			final SingleBitRequest sbr = new SingleBitRequest();
+			sbr.dataToSend = (b & 0x01) == 0x01 ? DataToSend.WRITE_1_OR_READ_BIT : DataToSend.WRITE_0_BIT;
+			b >>= 1;
+			sbr.speed = speed;
+			sbr.armPowerDelivery = (i < 7) ? false : true;
+			requests[i + 1] = sbr;
+		}
+		sendCommands(requests);
+		byte result = 0;
+		for (int i = 0; i < 8; i++) {
+			final SingleBitResponse sbr = ((SingleBitRequest) requests[i + 1]).response;
+			switch (sbr.bitResult) {
+			case _O_READ_BACK:
+				break;
+			case _1_READ_BACK:
+				result |= (byte) (0x01 << i);
+				break;
+			default:
+				throw new RuntimeException();
+			}
+		}
+		return result;
 	}
 
 	@Override
@@ -172,105 +325,15 @@ public class DS2480BAdapter implements OneWireAdapter {
 	}
 
 	@Override
-	public void setSerialPort(SerialPortSocket serialPort) {
-		this.serialPort = serialPort;
-	}
-
-	protected void readGarbage() throws IOException {
-		if (is.available() > 0) {
-			is.read(new byte[is.available()]);
-		}
-	}
-
-	protected void init() throws IOException {
-		// Taken from AN192 Figure 2
-		setState(State.INITIALIZING);
-		serialPort.sendBreak(2);
-
-		try {
-			Thread.sleep(2);
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-
-		readGarbage();
-		os.write(Encoder.RESET_CMD);
-		os.flush();
-		try {
-			Thread.sleep(2);
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-		setState(State.COMMAND);
-
-		sendCommands(ConfigurationWriteRequest.of(PullDownSlewRateParam.PDSRC_1_37),
-				ConfigurationWriteRequest.of(Write1LowTime.W1LT_10),
-				 ConfigurationWriteRequest.of(DataSampleOffsetAndWrite0RecoveryTime.DSO_AND_W0RT_8),
-				                    ConfigurationReadRequest.of(CommandType.RBR),
-				new SingleBitRequest(OneWireSpeed.STANDARD, DataToSend.WRITE_1_OR_READ_BIT, false));
-
-	}
-
-	@Override
-	public void open() throws IOException {
-		serialPort.open(Speed._9600_BPS, DataBits.DB_8, StopBits.SB_1, Parity.NONE, FlowControl.getFC_NONE());
-		serialPort.setTimeouts(100, 1000, 1000);
-		is = new BufferedInputStream(serialPort.getInputStream(), 64);
-		os = new BufferedOutputStream(serialPort.getOutputStream(), 64);
-		encoder = new Encoder(os);
-		decoder = new Decoder(is);
-		init();
-	}
-
-	@Override
-	public void close() throws IOException {
-		serialPort.close();
-	}
-
-	@Override
-	public boolean isOpen() {
-		return serialPort == null ? false : serialPort.isOpen();
-	}
-
-	@Override
-	public void searchDevices(Consumer<Long> c) throws IOException {
-		final OWSearchIterator searchIterator = new OWSearchIterator();
-		final RawDataRequest searchCommandData = new RawDataRequest(16);
-		final SearchCommand searchCommand = new SearchCommand();
-		while (!searchIterator.isSearchFinished()) {
-			sendCommand(ResetDeviceRequest.of(speedFromBaudrate));
-			sendCommands(searchCommand.resetState(), 
-					                           SearchAcceleratorCommand.of(SearchAccelerator.ON, speedFromBaudrate),
-					searchCommandData.resetState(), 
-					SearchAcceleratorCommand.of(SearchAccelerator.OFF, speedFromBaudrate));
-
-			searchIterator.interpretSearch(searchCommandData);
-			// check results
-			if (searchIterator.getAddress() == 0xffffffffffffffffL) {
-				//nothing found
-				return; 
-			}
-			if (!OneWireContainer.isAsddressValid(searchIterator.getAddress())) {
-                            LOG.log(Level.WARNING, "SearchError! invalid address: {0}", OneWireContainer.addressToString(searchIterator.getAddress()));
-			}
-			c.accept(searchIterator.getAddress());
-		}
-	}
-
-	@Override
 	public void sendMatchRomRequest(long address) throws IOException {
 		sendReset();
-		final DataRequestWithDeviceCommand request = new DataRequestWithDeviceCommand(Encoder.MATCH_ROM_CMD, OneWireContainer.arrayOfLong(address));
+		final DataRequestWithDeviceCommand request = new DataRequestWithDeviceCommand(Encoder.MATCH_ROM_CMD,
+				OneWireContainer.arrayOfLong(address));
 		sendCommand(request);
 		long result = OneWireContainer.addressOf(request.response);
 		if (result != address) {
 			throw new IllegalArgumentException();
 		}
-	}
-
-	@Override
-	public void sendReset() throws IOException {
-		sendCommand(ResetDeviceRequest.of(getSpeedFromBaudrate()));
 	}
 
 	@Override
@@ -280,62 +343,22 @@ public class DS2480BAdapter implements OneWireAdapter {
 		return request.response;
 	}
 
-	//DODO Use Duration??? and Infinite Reset???
 	@Override
-	public byte sendByteWithPower(byte b, StrongPullupDuration strongPullupDuration, OneWireSpeed speed) throws IOException {
-		CommandRequest<?>[] requests = new CommandRequest[9];
-		requests[0] = ConfigurationWriteRequest.of(strongPullupDuration);
-		for (int i = 0; i < 8; i++) {
-			final SingleBitRequest sbr = new SingleBitRequest();
-			sbr.dataToSend = (b & 0x01) == 0x01 ? DataToSend.WRITE_1_OR_READ_BIT : DataToSend.WRITE_0_BIT;
-					b >>= 1;
-			sbr.speed = speed;
-			sbr.armPowerDelivery = (i < 7) ? false : true;
-			requests[i +1] = sbr;
-		}
-		sendCommands(requests);
-		byte result = 0;
-		for (int i = 0; i < 8; i++) {
-			final SingleBitResponse sbr = ((SingleBitRequest)requests[i +1]).response;
-			switch (sbr.bitResult)	{
-			case _O_READ_BACK:
-				break;
-			case _1_READ_BACK:
-				result |= (byte) (0x01 << i);
-				break;
-				default:
-					throw new RuntimeException();
-			}
-		}
-		return result;
+	public byte sendReadByteRequest() throws IOException {
+		return sendCommand(new ReadBytesRequest(1))[0];
 	}
 
 	@Override
-	public byte sendByte(byte b, OneWireSpeed speed) throws IOException {
-		CommandRequest<?>[] requests = new CommandRequest[8];
-		for (int i = 0; i < 8; i++) {
-			final SingleBitRequest sbr = new SingleBitRequest();
-			sbr.dataToSend = (b & 0x01) == 0x01 ? DataToSend.WRITE_1_OR_READ_BIT : DataToSend.WRITE_0_BIT;
-					b >>= 1;
-			sbr.speed = speed;
-			sbr.armPowerDelivery = false;
-			requests[i] = sbr;
-		}
-		sendCommands(requests);
-		byte result = 0;
-		for (int i = 0; i < 8; i++) {
-			final SingleBitResponse sbr = ((SingleBitRequest)requests[i]).response;
-			switch (sbr.bitResult)	{
-			case _O_READ_BACK:
-				break;
-			case _1_READ_BACK:
-				result |= (byte) (0x01 << i);
-				break;
-				default:
-					throw new RuntimeException();
-			}
-		}
-		return result;
+	public void sendReset() throws IOException {
+		sendCommand(ResetDeviceRequest.of(getSpeedFromBaudrate()));
+	}
+
+	@Override
+	public void sendSkipRomRequest() throws IOException {
+		sendReset();
+		final DataRequestWithDeviceCommand request = new DataRequestWithDeviceCommand(Encoder.SKIP_ROM_CMD,
+				new byte[0]);
+		sendCommand(request);
 	}
 
 	@Override
@@ -345,32 +368,31 @@ public class DS2480BAdapter implements OneWireAdapter {
 		requests[1] = PulseRequest.of(PulsePower.STRONG_PULLUP, PulseType.DISARM);
 		requests[2] = new PulseTerminationRequest();
 		sendCommands(requests);
-		//TODO check response
+		// TODO check response
 	}
 
-	@Override
-	public void searchDevices(Consumer<OneWireContainer> c, boolean init) throws IOException {
-		searchDevices((Long address)->{
-			final OneWireDevice device = OneWireDevice.fromAdress(address, init);
-			try {
-				device.init(this);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			} 
-			c.accept(device);
-		});
-	}
-
-	@Override
-	public void sendSkipRomRequest() throws IOException {
-		sendReset();
-		final DataRequestWithDeviceCommand request = new DataRequestWithDeviceCommand(Encoder.SKIP_ROM_CMD, new byte[0]);
-		sendCommand(request);
-	}
-
-	@Override
-	public byte sendReadByteRequest() throws IOException {
-		return sendCommand(new ReadBytesRequest(1))[0];
+	/**
+	 * Set the state and write the switch to bytes as needed
+	 * 
+	 * @param state
+	 * @throws IOException
+	 */
+	private void setState(State state) throws IOException {
+		final State old = this.state;
+		this.state = state;
+		if (old == State.INITIALIZING) {
+			return;
+		}
+		switch (state) {
+		case COMMAND:
+			os.write(Encoder.SWITCH_TO_COMMAND_MODE_BYTE);
+			break;
+		case DATA:
+			os.write(Encoder.SWITCH_TO_DATA_MODE_BYTE);
+			break;
+		default:
+			break;
+		}
 	}
 
 }

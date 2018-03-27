@@ -72,7 +72,7 @@ public class Main {
 				adapter.searchDevices((OneWireContainer owc) -> {
 					System.err.append(' ').append(owc.getAddressAsString());
 					owcs.add(owc);
-				}, true);
+				});
 				System.err.println();
 
 				String logString = "";
