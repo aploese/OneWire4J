@@ -57,7 +57,9 @@ import de.ibapl.onewire4j.request.data.RawDataRequest;
 import de.ibapl.onewire4j.request.data.SearchCommand;
 
 /**
- *
+ * Encodes a OneWireRequest to a byte or byte[] and write that data to the
+ * {@linkplain OutputStream}.
+ * 
  * @author Arne Plöse
  */
 public class Encoder {
@@ -72,13 +74,28 @@ public class Encoder {
 
 	private final OutputStream os;
 
+	/**
+	 * Create a new instance and set the {@linkplain OutputStream}.
+	 * 
+	 * @param os
+	 *            the OutputStream to write to.
+	 */
 	public Encoder(OutputStream os) {
 		this.os = os;
 	}
 
+	/**
+	 * Encode and write the request to the OutputStream.
+	 * Work is done by delegating the actual work to the private methods.
+	 * 
+	 * @param request
+	 *            the request to encode.
+	 * @throws IOException
+	 *             if an error happens.
+	 */
 	public <R> void encode(OneWireRequest<R> request) throws IOException {
 		request.throwIfNot(RequestState.READY_TO_SEND);
-		
+
 		if (request instanceof CommandRequest) {
 			if (request instanceof ConfigurationRequest) {
 				if (request instanceof ConfigurationReadRequest) {
@@ -123,7 +140,7 @@ public class Encoder {
 		request.waitForResponse();
 	}
 
-	int encodeConfigurationReadRequest(ConfigurationReadRequest<?> configurationCommand) throws IOException {
+	private int encodeConfigurationReadRequest(ConfigurationReadRequest<?> configurationCommand) throws IOException {
 		switch (configurationCommand.commandType) {
 		case PDSRC:
 			return 0b0_000_001_1;
@@ -145,7 +162,7 @@ public class Encoder {
 	}
 
 	@SuppressWarnings("unchecked")
-	int encodeConfigurationWriteRequest(ConfigurationWriteRequest<?> configurationCommand) throws IOException {
+	private int encodeConfigurationWriteRequest(ConfigurationWriteRequest<?> configurationCommand) throws IOException {
 		switch (configurationCommand.commandType) {
 		case PDSRC:
 			switch (((ConfigurationWriteRequest<PullDownSlewRateParam>) configurationCommand).propertyValue) {
@@ -336,7 +353,7 @@ public class Encoder {
 		}
 	}
 
-	int encodeSingleBitSendCommand(SingleBitRequest request) throws IOException {
+	private int encodeSingleBitSendCommand(SingleBitRequest request) throws IOException {
 		switch (request.dataToSend) {
 		case WRITE_0_BIT:
 			return encodeSpeed(request.speed) | (request.armPowerDelivery ? 0b100_0_00_11 : 0b100_0_00_01);
@@ -375,10 +392,3 @@ public class Encoder {
 	}
 
 }
-
-// beide f04002880202aaaa280200800000000aa2
-// erster f0000882a2080a8a88020000000000a2a2
-// zweiter f00002880202aaaa280200800000000aa2
-/*
- * 0x44 mit pullup auf 5V bitweise... "e38585958585859587" "8484978484849784"
- */

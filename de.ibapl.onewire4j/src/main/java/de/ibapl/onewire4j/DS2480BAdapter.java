@@ -288,7 +288,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 			}
 			break;
 		default:
-			throw new OneWireException("Can't hande request and state");
+			throw new IllegalStateException("Can't hande adapter state: " + state);
 		}
 		encoder.encode(request);
 		os.flush();
@@ -312,7 +312,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 				}
 				break;
 			default:
-				throw new OneWireException("Can't hande request and state");
+				throw new IllegalStateException("Can't hande adapter state: " + state);
 			}
 			encoder.encode(request);
 		}

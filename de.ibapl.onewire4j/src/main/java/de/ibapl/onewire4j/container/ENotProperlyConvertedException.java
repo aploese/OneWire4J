@@ -27,13 +27,14 @@
  */
 package de.ibapl.onewire4j.container;
 
-import de.ibapl.onewire4j.OneWireException;
+import java.io.IOException;
 
 /**
- *
+ * Indicates that a conversation was not successful.
+ * 
  * @author Arne Plöse
  */
-public class ENotProperlyConvertedException extends OneWireException {
+public class ENotProperlyConvertedException extends IOException {
 
     private static final long serialVersionUID = -7949470565387666599L;
 	private final double value;
