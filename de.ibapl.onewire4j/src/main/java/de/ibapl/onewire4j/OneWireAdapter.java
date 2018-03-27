@@ -2,7 +2,7 @@
  * #%L
  * OneWire4J
  * %%
- * Copyright (C) 2017 Arne Plöse
+ * Copyright (C) 2017 - 2018 Arne Plöse
  * %%
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
  * Copyright (C) 2009, 2017, Arne Plöse and individual contributors as indicated
@@ -27,19 +27,18 @@
  */
 package de.ibapl.onewire4j;
 
+import java.io.IOException;
+import java.util.function.Consumer;
 
 import de.ibapl.onewire4j.container.OneWireContainer;
 import de.ibapl.onewire4j.request.OneWireRequest;
 import de.ibapl.onewire4j.request.communication.OneWireSpeed;
 import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
-import java.io.IOException;
-import java.util.function.Consumer;
-
 import de.ibapl.spsw.api.SerialPortSocket;
 
 /**
  *
- * @author aploese
+ * @author Arne Plöse
  */
 public interface OneWireAdapter extends AutoCloseable {
 	

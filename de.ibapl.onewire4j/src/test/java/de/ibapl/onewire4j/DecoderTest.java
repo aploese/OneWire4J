@@ -1,10 +1,8 @@
-package de.ibapl.onewire4j;
-
 /*-
  * #%L
  * OneWire4J
  * %%
- * Copyright (C) 2017 Arne Plöse
+ * Copyright (C) 2017 - 2018 Arne Plöse
  * %%
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
  * Copyright (C) 2009, 2017, Arne Plöse and individual contributors as indicated
@@ -27,32 +25,35 @@ package de.ibapl.onewire4j;
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  * #L%
  */
+package de.ibapl.onewire4j;
 
+import static org.junit.Assert.assertEquals;
 
-import de.ibapl.onewire4j.request.OneWireRequest;
-import de.ibapl.onewire4j.request.communication.BitResult;
-import de.ibapl.onewire4j.request.communication.DataToSend;
-import de.ibapl.onewire4j.request.communication.SingleBitRequest;
-import de.ibapl.onewire4j.request.communication.OneWireSpeed;
-import de.ibapl.onewire4j.request.configuration.CommandType;
-import de.ibapl.onewire4j.request.configuration.ConfigurationReadRequest;
-import de.ibapl.onewire4j.request.configuration.ConfigurationWriteRequest;
-import de.ibapl.onewire4j.request.configuration.DataSampleOffsetAndWrite0RecoveryTime;
-import de.ibapl.onewire4j.request.configuration.PullDownSlewRateParam;
-import de.ibapl.onewire4j.request.configuration.RS232BaudRate;
-import de.ibapl.onewire4j.request.configuration.Write1LowTime;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import de.ibapl.onewire4j.request.OneWireRequest;
+import de.ibapl.onewire4j.request.communication.BitResult;
+import de.ibapl.onewire4j.request.communication.DataToSend;
+import de.ibapl.onewire4j.request.communication.OneWireSpeed;
+import de.ibapl.onewire4j.request.communication.SingleBitRequest;
+import de.ibapl.onewire4j.request.configuration.CommandType;
+import de.ibapl.onewire4j.request.configuration.ConfigurationReadRequest;
+import de.ibapl.onewire4j.request.configuration.ConfigurationWriteRequest;
+import de.ibapl.onewire4j.request.configuration.DataSampleOffsetAndWrite0RecoveryTime;
+import de.ibapl.onewire4j.request.configuration.PullDownSlewRateParam;
+import de.ibapl.onewire4j.request.configuration.SerialPortSpeed;
+import de.ibapl.onewire4j.request.configuration.Write1LowTime;
 
 /**
  *
- * @author aploese
+ * @author Arne Plöse
  */
 public class DecoderTest {
     
@@ -97,7 +98,7 @@ public class DecoderTest {
         request = ConfigurationReadRequest.of(CommandType.RBR);
         request.requestState = OneWireRequest.RequestState.WAIT_FOR_RESPONSE;
         decoder.decode(request);
-        assertEquals(RS232BaudRate.RBR_9_6, request.response);
+        assertEquals(SerialPortSpeed.SPS_9_6, request.response);
         SingleBitRequest singleBitRequest = new SingleBitRequest(OneWireSpeed.STANDARD, DataToSend.WRITE_0_BIT, false);
         singleBitRequest.requestState = OneWireRequest.RequestState.WAIT_FOR_RESPONSE;
         decoder.decode(singleBitRequest);

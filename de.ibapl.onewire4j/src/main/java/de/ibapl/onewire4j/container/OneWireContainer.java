@@ -1,12 +1,8 @@
-package de.ibapl.onewire4j.container;
-
-import de.ibapl.onewire4j.utils.CRC8;
-
 /*-
  * #%L
  * OneWire4J
  * %%
- * Copyright (C) 2017 Arne Plöse
+ * Copyright (C) 2017 - 2018 Arne Plöse
  * %%
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
  * Copyright (C) 2009, 2017, Arne Plöse and individual contributors as indicated
@@ -29,11 +25,13 @@ import de.ibapl.onewire4j.utils.CRC8;
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  * #L%
  */
+package de.ibapl.onewire4j.container;
 
+import de.ibapl.onewire4j.utils.CRC8;
 
 /**
  *
- * @author aploese
+ * @author Arne Plöse
  */
 public interface OneWireContainer {
 	
@@ -69,7 +67,7 @@ public interface OneWireContainer {
         result |= (long)(address[3] & 0xFF) << 24;
         result |= (long)(address[2] & 0xFF) << 16;
         result |= (long)(address[1] & 0xFF) << 8;
-        result |= (long)(address[0] & 0xFF);
+        result |= address[0] & 0xFF;
         return result;
     }
         

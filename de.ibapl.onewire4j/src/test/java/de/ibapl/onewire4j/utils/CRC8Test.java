@@ -1,10 +1,8 @@
-package de.ibapl.onewire4j.utils;
-
 /*-
  * #%L
  * OneWire4J
  * %%
- * Copyright (C) 2017 Arne Plöse
+ * Copyright (C) 2017 - 2018 Arne Plöse
  * %%
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
  * Copyright (C) 2009, 2017, Arne Plöse and individual contributors as indicated
@@ -27,17 +25,20 @@ package de.ibapl.onewire4j.utils;
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  * #L%
  */
+package de.ibapl.onewire4j.utils;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
- * @author aploese
+ * @author Arne Plöse
  */
 public class CRC8Test {
     

@@ -1,10 +1,8 @@
-package de.ibapl.onewire4j;
-
 /*-
  * #%L
  * OneWire4J
  * %%
- * Copyright (C) 2017 Arne Plöse
+ * Copyright (C) 2017 - 2018 Arne Plöse
  * %%
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
  * Copyright (C) 2009, 2017, Arne Plöse and individual contributors as indicated
@@ -27,18 +25,22 @@ package de.ibapl.onewire4j;
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  * #L%
  */
+package de.ibapl.onewire4j;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 import de.ibapl.onewire4j.container.OneWireDataCommand;
 import de.ibapl.onewire4j.request.CommandRequest;
 import de.ibapl.onewire4j.request.OneWireRequest;
-import de.ibapl.onewire4j.request.PulseTerminationRequest;
 import de.ibapl.onewire4j.request.OneWireRequest.RequestState;
+import de.ibapl.onewire4j.request.PulseTerminationRequest;
 import de.ibapl.onewire4j.request.communication.CommunicationRequest;
+import de.ibapl.onewire4j.request.communication.OneWireSpeed;
 import de.ibapl.onewire4j.request.communication.PulseRequest;
 import de.ibapl.onewire4j.request.communication.ResetDeviceRequest;
 import de.ibapl.onewire4j.request.communication.SearchAcceleratorCommand;
 import de.ibapl.onewire4j.request.communication.SingleBitRequest;
-import de.ibapl.onewire4j.request.communication.OneWireSpeed;
 import de.ibapl.onewire4j.request.configuration.ConfigurationReadRequest;
 import de.ibapl.onewire4j.request.configuration.ConfigurationRequest;
 import de.ibapl.onewire4j.request.configuration.ConfigurationWriteRequest;
@@ -46,7 +48,7 @@ import de.ibapl.onewire4j.request.configuration.DataSampleOffsetAndWrite0Recover
 import de.ibapl.onewire4j.request.configuration.LoadSensorThreshold;
 import de.ibapl.onewire4j.request.configuration.ProgrammingPulseDuration;
 import de.ibapl.onewire4j.request.configuration.PullDownSlewRateParam;
-import de.ibapl.onewire4j.request.configuration.RS232BaudRate;
+import de.ibapl.onewire4j.request.configuration.SerialPortSpeed;
 import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
 import de.ibapl.onewire4j.request.configuration.Write1LowTime;
 import de.ibapl.onewire4j.request.data.DataRequest;
@@ -54,22 +56,19 @@ import de.ibapl.onewire4j.request.data.DataRequestWithDeviceCommand;
 import de.ibapl.onewire4j.request.data.RawDataRequest;
 import de.ibapl.onewire4j.request.data.SearchCommand;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
 /**
  *
- * @author aploese
+ * @author Arne Plöse
  */
 public class Encoder {
 
-	public static final byte SWITCH_TO_DATA_MODE_BYTE = (byte) 0xe1;
-	public static final byte SWITCH_TO_COMMAND_MODE_BYTE = (byte) 0xe3;
 	@OneWireDataCommand
 	public static final byte MATCH_ROM_CMD = 0x55;
+	public static final byte RESET_CMD = (byte) 0xC1;
 	@OneWireDataCommand
-	public static final byte SKIP_ROM_CMD = (byte)0xcc;
-	public static final byte RESET_CMD = (byte)0xC1;
+	public static final byte SKIP_ROM_CMD = (byte) 0xcc;
+	public static final byte SWITCH_TO_COMMAND_MODE_BYTE = (byte) 0xe3;
+	public static final byte SWITCH_TO_DATA_MODE_BYTE = (byte) 0xe1;
 
 	private final OutputStream os;
 
@@ -98,7 +97,7 @@ public class Encoder {
 				} else if (request instanceof ResetDeviceRequest) {
 					os.write(encodeResetDevice((ResetDeviceRequest) request));
 				} else if (request instanceof PulseRequest) {
-					os.write(encodePulseRequest((PulseRequest)request));
+					os.write(encodePulseRequest((PulseRequest) request));
 				} else if (request instanceof PulseTerminationRequest) {
 					os.write(0xF1);
 				} else {
@@ -111,9 +110,9 @@ public class Encoder {
 			if (request instanceof SearchCommand) {
 				os.write(0xf0);
 			} else if (request instanceof RawDataRequest) {
-				writeDataBytes(((RawDataRequest)request).requestData);
+				writeDataBytes(((RawDataRequest) request).requestData);
 			} else if (request instanceof DataRequestWithDeviceCommand) {
-				final DataRequestWithDeviceCommand r = (DataRequestWithDeviceCommand)request;
+				final DataRequestWithDeviceCommand r = (DataRequestWithDeviceCommand) request;
 				os.write(r.command);
 				writeDataBytes(r.requestData);
 			} else {
@@ -123,82 +122,6 @@ public class Encoder {
 			throw new RuntimeException("Unknown subtype of CommandRequest: " + request.getClass());
 		}
 		request.requestState = RequestState.WAIT_FOR_RESPONSE;
-	}
-
-	private void writeDataBytes(final byte[] requestData) throws IOException {
-		int lastWriteMark = 0;
-		for (int i = 0; i < requestData.length; i++ ) {
-			if (requestData[i] == SWITCH_TO_COMMAND_MODE_BYTE) {
-				os.write(requestData, lastWriteMark, i - lastWriteMark);
-				os.write(requestData[i]);
-				lastWriteMark = i;
-			}
-		}
-		os.write(requestData, lastWriteMark, requestData.length - lastWriteMark);
-	}
-
-	private int encodePulseRequest(PulseRequest request) {
-		int data = 0b111_0_11_0_1;
-		switch (request.pulsePower) {
-		case PROGRAMMING_PULSE:
-			data |= 0b000_1_00_0_0;
-			break;
-		case STRONG_PULLUP:
-			break;
-		default:
-			throw new RuntimeException();
-		}	
-		switch (request.pulseType) {
-		case ARM_AFTER_EVERY_BYTE:
-			data |= 0b000_0_00_1_0;
-			break;
-		case DISARM:
-			break;
-		default:
-			throw new RuntimeException();
-		}	
-		return data;
-	}
-
-	private int encodeResetDevice(ResetDeviceRequest request) {
-		return encodeSpeed(request.speed) | 0b1100_00_01; 
-	}
-
-	private int encodeSpeed(OneWireSpeed speed) {
-		switch (speed) {
-		case STANDARD:
-			return 0b0000_00_00;
-		case FLEX:
-			return 0b0000_01_00;
-		case OVERDRIVE:
-			return 0b0000_10_00;
-		case STANDARD_11:
-			return 0b0000_11_00;
-		default:
-			throw new RuntimeException("Unknown speed: " + speed);
-		}
-	}
-
-	private int encodeSearchAcceleratorCommand(SearchAcceleratorCommand request) {
-		switch (request.searchAccelerator) {
-		case ON:
-			return encodeSpeed(request.speed) | 0b1011_00_01;
-		case OFF:
-			return encodeSpeed(request.speed) | 0b1010_00_01;
-		default:
-			throw new RuntimeException("Unknown search accelerator: " + request.searchAccelerator);
-		} 	
-	}
-
-	int encodeSingleBitSendCommand(SingleBitRequest request) throws IOException {
-		switch (request.dataToSend) {
-		case WRITE_0_BIT:
-			return encodeSpeed(request.speed) | (request.armPowerDelivery ? 0b100_0_00_11 : 0b100_0_00_01);
-		case WRITE_1_OR_READ_BIT:
-			return encodeSpeed(request.speed) | (request.armPowerDelivery ?  0b100_1_00_11 : 0b100_1_00_01);
-		default:
-			throw new RuntimeException("Unknown dataToSend: " + request.dataToSend);
-		}
 	}
 
 	int encodeConfigurationReadRequest(ConfigurationReadRequest<?> configurationCommand) throws IOException {
@@ -352,37 +275,111 @@ public class Encoder {
 				throw new RuntimeException("Cant't handle LST: " + configurationCommand.propertyValue);
 			}
 		case RBR:
-			switch (((ConfigurationWriteRequest<RS232BaudRate>) configurationCommand).propertyValue) {
-			case RBR_9_6:
-			case RBR_19_2:
+			switch (((ConfigurationWriteRequest<SerialPortSpeed>) configurationCommand).propertyValue) {
+			case SPS_9_6:
+			case SPS_19_2:
 				return 0b0_111_001_1;
-			case RBR_57_6:
+			case SPS_57_6:
 				return 0b0_111_010_1;
-			case RBR_115_2:
+			case SPS_115_2:
 				return 0b0_111_011_1;
-			case RBR_9_6_I:
+			case SPS_9_6_I:
 				return 0b0_111_100_1;
-			case RBR_19_2_I:
+			case SPS_19_2_I:
 				return 0b0_111_101_1;
-			case RBR_57_6_I:
+			case SPS_57_6_I:
 				return 0b0_111_110_1;
-			case RBR_115_2_I:
+			case SPS_115_2_I:
 				return 0b0_111_111_1;
 			default:
-				throw new RuntimeException("Cant't handle RBR: " + configurationCommand.propertyValue);
+				throw new IllegalArgumentException("Cant't handle RBR: " + configurationCommand.propertyValue);
 			}
 		default:
-			throw new RuntimeException("Unknown Configuration command: " + configurationCommand.commandType);
+			throw new IllegalArgumentException("Unknown Configuration command: " + configurationCommand.commandType);
 		}
+	}
+
+	private int encodePulseRequest(PulseRequest request) {
+		int data = 0b111_0_11_0_1;
+		switch (request.pulsePower) {
+		case PROGRAMMING_PULSE:
+			data |= 0b000_1_00_0_0;
+			break;
+		case STRONG_PULLUP:
+			break;
+		default:
+			throw new RuntimeException();
+		}
+		switch (request.pulseType) {
+		case ARM_AFTER_EVERY_BYTE:
+			data |= 0b000_0_00_1_0;
+			break;
+		case DISARM:
+			break;
+		default:
+			throw new RuntimeException();
+		}
+		return data;
+	}
+
+	private int encodeResetDevice(ResetDeviceRequest request) {
+		return encodeSpeed(request.speed) | 0b1100_00_01;
+	}
+
+	private int encodeSearchAcceleratorCommand(SearchAcceleratorCommand request) {
+		switch (request.searchAccelerator) {
+		case ON:
+			return encodeSpeed(request.speed) | 0b1011_00_01;
+		case OFF:
+			return encodeSpeed(request.speed) | 0b1010_00_01;
+		default:
+			throw new RuntimeException("Unknown search accelerator: " + request.searchAccelerator);
+		}
+	}
+
+	int encodeSingleBitSendCommand(SingleBitRequest request) throws IOException {
+		switch (request.dataToSend) {
+		case WRITE_0_BIT:
+			return encodeSpeed(request.speed) | (request.armPowerDelivery ? 0b100_0_00_11 : 0b100_0_00_01);
+		case WRITE_1_OR_READ_BIT:
+			return encodeSpeed(request.speed) | (request.armPowerDelivery ? 0b100_1_00_11 : 0b100_1_00_01);
+		default:
+			throw new RuntimeException("Unknown dataToSend: " + request.dataToSend);
+		}
+	}
+
+	private int encodeSpeed(OneWireSpeed speed) {
+		switch (speed) {
+		case STANDARD:
+			return 0b0000_00_00;
+		case FLEX:
+			return 0b0000_01_00;
+		case OVERDRIVE:
+			return 0b0000_10_00;
+		case STANDARD_11:
+			return 0b0000_11_00;
+		default:
+			throw new RuntimeException("Unknown speed: " + speed);
+		}
+	}
+
+	private void writeDataBytes(final byte[] requestData) throws IOException {
+		int lastWriteMark = 0;
+		for (int i = 0; i < requestData.length; i++) {
+			if (requestData[i] == SWITCH_TO_COMMAND_MODE_BYTE) {
+				os.write(requestData, lastWriteMark, i - lastWriteMark);
+				os.write(requestData[i]);
+				lastWriteMark = i;
+			}
+		}
+		os.write(requestData, lastWriteMark, requestData.length - lastWriteMark);
 	}
 
 }
 
-//beide   f04002880202aaaa280200800000000aa2
-//erster  f0000882a2080a8a88020000000000a2a2
-//zweiter f00002880202aaaa280200800000000aa2
+// beide f04002880202aaaa280200800000000aa2
+// erster f0000882a2080a8a88020000000000a2a2
+// zweiter f00002880202aaaa280200800000000aa2
 /*
-0x44 mit pullup auf 5V bitweise...
-"e38585958585859587"
-"8484978484849784"
-*/
+ * 0x44 mit pullup auf 5V bitweise... "e38585958585859587" "8484978484849784"
+ */

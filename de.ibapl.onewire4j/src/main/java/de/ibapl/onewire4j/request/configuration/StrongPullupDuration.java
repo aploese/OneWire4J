@@ -1,10 +1,8 @@
-package de.ibapl.onewire4j.request.configuration;
-
 /*-
  * #%L
  * OneWire4J
  * %%
- * Copyright (C) 2017 Arne Plöse
+ * Copyright (C) 2017 - 2018 Arne Plöse
  * %%
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
  * Copyright (C) 2009, 2017, Arne Plöse and individual contributors as indicated
@@ -27,10 +25,11 @@ package de.ibapl.onewire4j.request.configuration;
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  * #L%
  */
+package de.ibapl.onewire4j.request.configuration;
 
 /**
  *
- * @author aploese
+ * @author Arne Plöse
  */
 public enum StrongPullupDuration {
     SPUD_16_4,
@@ -43,7 +42,8 @@ public enum StrongPullupDuration {
     SPUD_POSITIVE_INFINITY;
 
 
-    public String toString() {
+    @Override
+	public String toString() {
         switch (this) {
             case SPUD_16_4: return 16.4 + " µs";
             case SPUD_65_5: return 65.5 + " µs";

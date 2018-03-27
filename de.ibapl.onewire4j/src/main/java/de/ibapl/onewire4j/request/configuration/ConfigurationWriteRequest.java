@@ -1,10 +1,8 @@
-package de.ibapl.onewire4j.request.configuration;
-
 /*-
  * #%L
  * OneWire4J
  * %%
- * Copyright (C) 2017 Arne Plöse
+ * Copyright (C) 2017 - 2018 Arne Plöse
  * %%
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
  * Copyright (C) 2009, 2017, Arne Plöse and individual contributors as indicated
@@ -27,10 +25,11 @@ package de.ibapl.onewire4j.request.configuration;
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  * #L%
  */
+package de.ibapl.onewire4j.request.configuration;
 
 /**
  *
- * @author aploese
+ * @author Arne Plöse
  */
 public class ConfigurationWriteRequest<R>  extends ConfigurationRequest<R>{
 
@@ -76,8 +75,8 @@ public class ConfigurationWriteRequest<R>  extends ConfigurationRequest<R>{
         return result;
     }
 
-    public static ConfigurationWriteRequest<RS232BaudRate> of(RS232BaudRate rS232BaudRate) {
-        final ConfigurationWriteRequest<RS232BaudRate> result = new ConfigurationWriteRequest<>();
+    public static ConfigurationWriteRequest<SerialPortSpeed> of(SerialPortSpeed rS232BaudRate) {
+        final ConfigurationWriteRequest<SerialPortSpeed> result = new ConfigurationWriteRequest<>();
         result.commandType = CommandType.RBR;
         result.propertyValue = rS232BaudRate;
         return result;

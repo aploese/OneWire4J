@@ -1,10 +1,8 @@
-package de.ibapl.onewire4j.cli;
-
 /*-
  * #%L
- * OneWire4J CLI
+ * OneWire4J
  * %%
- * Copyright (C) 2017 Arne Plöse
+ * Copyright (C) 2017 - 2018 Arne Plöse
  * %%
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
  * Copyright (C) 2009, 2017, Arne Plöse and individual contributors as indicated
@@ -27,6 +25,7 @@ package de.ibapl.onewire4j.cli;
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  * #L%
  */
+package de.ibapl.onewire4j.cli;
 
 import java.io.FileOutputStream;
 import java.time.Instant;
@@ -46,7 +45,7 @@ import de.ibapl.spsw.logging.TimeStampLogging;
 
 /**
  *
- * @author aploese
+ * @author Arne Plöse
  */
 public class Main {
 
@@ -55,52 +54,53 @@ public class Main {
 	 *            the command line arguments
 	 */
 	public static void main(String[] args) throws Exception {
-		FileOutputStream log = new FileOutputStream("/tmp/owapi-ng.log");
-		ServiceLoader<SerialPortSocketFactory> spsFactory = ServiceLoader.load(SerialPortSocketFactory.class);
-		SerialPortSocketFactory serialPortSocketFactory = spsFactory.iterator().next();
-                System.out.println("serialPortSocketFactory " + serialPortSocketFactory.getClass().getName());
+		try (FileOutputStream log = new FileOutputStream("/tmp/owapi-ng.log")) {
+			ServiceLoader<SerialPortSocketFactory> spsFactory = ServiceLoader.load(SerialPortSocketFactory.class);
+			SerialPortSocketFactory serialPortSocketFactory = spsFactory.iterator().next();
+			System.out.println("serialPortSocketFactory " + serialPortSocketFactory.getClass().getName());
 
-		final SerialPortSocket port = serialPortSocketFactory.createSerialPortSocket(args[0]);
-		LoggingSerialPortSocket lport = LoggingSerialPortSocket.wrapWithHexOutputStream(port,
-				new FileOutputStream("/tmp/owapi-ng.csv"), false, TimeStampLogging.UTC);
-		
-		try (OneWireAdapter adapter = new AdapterFactory().open(lport)) {
-			final boolean parasitePowerNeeded = TemperatureContainer.isParasitePower(adapter);
-			System.err.println("Some device uses parasite power: " + parasitePowerNeeded);
+			final SerialPortSocket port = serialPortSocketFactory.createSerialPortSocket(args[0]);
+			LoggingSerialPortSocket lport = LoggingSerialPortSocket.wrapWithHexOutputStream(port,
+					new FileOutputStream("/tmp/owapi-ng.csv"), false, TimeStampLogging.UTC);
 
-			final LinkedList<OneWireContainer> owcs = new LinkedList<>();
-			System.err.print("Addresses:");
-			adapter.searchDevices((OneWireContainer owc) -> {
-				System.err.append(' ').append(owc.getAddressAsString());
-				owcs.add(owc);
-			}, true);
-			System.err.println();
+			try (OneWireAdapter adapter = new AdapterFactory().open(lport)) {
+				final boolean parasitePowerNeeded = TemperatureContainer.isParasitePower(adapter);
+				System.err.println("Some device uses parasite power: " + parasitePowerNeeded);
 
+				final LinkedList<OneWireContainer> owcs = new LinkedList<>();
+				System.err.print("Addresses:");
+				adapter.searchDevices((OneWireContainer owc) -> {
+					System.err.append(' ').append(owc.getAddressAsString());
+					owcs.add(owc);
+				}, true);
+				System.err.println();
 
-			
-			String logString = "";
-			while (true) {
-				TemperatureContainer.sendDoConvertRequestToAll(adapter, parasitePowerNeeded);
-				for (OneWireContainer owc : owcs) {
-					if (owc instanceof TemperatureContainer) {
-						final TemperatureContainer tc = (TemperatureContainer)owc;
-						try {
-							ReadScratchpadRequest request = new ReadScratchpadRequest();
-							tc.readScratchpad(adapter, request);
-							final double temp  =  tc.getTemperature(request);
-							logString = Instant.now() + "\t" + owc.getAddressAsString() + "\t" + temp + "°C\n";
-							log.write(logString.getBytes());
-						} catch (ENotProperlyConvertedException e) {
-							logString = Instant.now() + "\t" + owc.getAddressAsString() + "\t" + e.getValue() + "°C\t ERROR? \n";
-							log.write(logString.getBytes());
+				String logString = "";
+				while (true) {
+					TemperatureContainer.sendDoConvertRequestToAll(adapter, parasitePowerNeeded);
+					for (OneWireContainer owc : owcs) {
+						if (owc instanceof TemperatureContainer) {
+							final TemperatureContainer tc = (TemperatureContainer) owc;
 							try {
-								final double temp  =  tc.convertAndReadTemperature(adapter);
+								ReadScratchpadRequest request = new ReadScratchpadRequest();
+								tc.readScratchpad(adapter, request);
+								final double temp = tc.getTemperature(request);
 								logString = Instant.now() + "\t" + owc.getAddressAsString() + "\t" + temp + "°C\n";
 								log.write(logString.getBytes());
-							} catch (ENotProperlyConvertedException e1) {
-								logString = Instant.now() + "\t" + owc.getAddressAsString() + "\t" + e.getValue() + "°C\t ERROR AGAIN ... MAYBE NOT \n";
-								System.err.print(logString);
+							} catch (ENotProperlyConvertedException e) {
+								logString = Instant.now() + "\t" + owc.getAddressAsString() + "\t" + e.getValue()
+										+ "°C\t ERROR? \n";
 								log.write(logString.getBytes());
+								try {
+									final double temp = tc.convertAndReadTemperature(adapter);
+									logString = Instant.now() + "\t" + owc.getAddressAsString() + "\t" + temp + "°C\n";
+									log.write(logString.getBytes());
+								} catch (ENotProperlyConvertedException e1) {
+									logString = Instant.now() + "\t" + owc.getAddressAsString() + "\t" + e.getValue()
+											+ "°C\t ERROR AGAIN ... MAYBE NOT \n";
+									System.err.print(logString);
+									log.write(logString.getBytes());
+								}
 							}
 						}
 					}

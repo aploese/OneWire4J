@@ -1,10 +1,8 @@
-package de.ibapl.onewire4j.request.data;
-
 /*-
  * #%L
  * OneWire4J
  * %%
- * Copyright (C) 2017 Arne Plöse
+ * Copyright (C) 2017 - 2018 Arne Plöse
  * %%
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
  * Copyright (C) 2009, 2017, Arne Plöse and individual contributors as indicated
@@ -27,12 +25,13 @@ package de.ibapl.onewire4j.request.data;
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  * #L%
  */
+package de.ibapl.onewire4j.request.data;
 
 import java.util.Arrays;
 
 /**
  *
- * @author aploese
+ * @author Arne Plöse
  */
 public class DataRequestWithDeviceCommand extends DataRequest<byte[]> {
 	
@@ -43,7 +42,7 @@ public class DataRequestWithDeviceCommand extends DataRequest<byte[]> {
 	 * @param filler the byte with to fill the data section
 	 */
 	public DataRequestWithDeviceCommand(byte command, int size, byte filler) {
-		this((byte)command, new byte[size], new byte[size]);
+		this(command, new byte[size], new byte[size]);
 		Arrays.fill(requestData, filler);
 	}
 
@@ -54,7 +53,7 @@ public class DataRequestWithDeviceCommand extends DataRequest<byte[]> {
 	public DataRequestWithDeviceCommand(byte command, byte[] requestData, byte[] responseArray) {
 		this.requestData = requestData;
 		this.response = responseArray;
-		this.command = (byte)command;
+		this.command = command;
 	}
 	
 	public final byte[] requestData;

@@ -1,10 +1,8 @@
-package de.ibapl.onewire4j.container;
-
 /*-
  * #%L
  * OneWire4J
  * %%
- * Copyright (C) 2017 Arne Plöse
+ * Copyright (C) 2017 - 2018 Arne Plöse
  * %%
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
  * Copyright (C) 2009, 2017, Arne Plöse and individual contributors as indicated
@@ -27,10 +25,11 @@ package de.ibapl.onewire4j.container;
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  * #L%
  */
+package de.ibapl.onewire4j.container;
 
 /**
  *
- * @author aploese
+ * @author Arne Plöse
  */
 @DeviceInfo(oneWireName="DS18S20", iButtonName="DS1920")
 public class OneWireDevice10 extends OneWireDevice implements TemperatureContainer {
@@ -39,6 +38,7 @@ public class OneWireDevice10 extends OneWireDevice implements TemperatureContain
 		super(address);
 	}
 
+	@Override
 	public double getTemperature(ReadScratchpadRequest request) throws ENotProperlyConvertedException {
 
 		// on some parts, namely the 18S20, you can get invalid readings.
@@ -54,7 +54,7 @@ public class OneWireDevice10 extends OneWireDevice implements TemperatureContain
 			throw new ENotProperlyConvertedException(85);
 		}
 		temp >>= 1;
-		return (double)temp - 0.25 + ((double) request.response[7] - (double) request.response[6]) / (double) request.response[7];
+		return temp - 0.25 + ((double) request.response[7] - (double) request.response[6]) / request.response[7];
 	}
 
 }

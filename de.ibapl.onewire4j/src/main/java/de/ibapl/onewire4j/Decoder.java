@@ -1,10 +1,8 @@
-package de.ibapl.onewire4j;
-
 /*-
  * #%L
  * OneWire4J
  * %%
- * Copyright (C) 2017 Arne Plöse
+ * Copyright (C) 2017 - 2018 Arne Plöse
  * %%
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
  * Copyright (C) 2009, 2017, Arne Plöse and individual contributors as indicated
@@ -27,6 +25,7 @@ package de.ibapl.onewire4j;
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  * #L%
  */
+package de.ibapl.onewire4j;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -34,12 +33,13 @@ import java.io.InputStream;
 
 import de.ibapl.onewire4j.request.CommandRequest;
 import de.ibapl.onewire4j.request.OneWireRequest;
-import de.ibapl.onewire4j.request.PulseTerminationRequest;
 import de.ibapl.onewire4j.request.OneWireRequest.RequestState;
+import de.ibapl.onewire4j.request.PulseTerminationRequest;
 import de.ibapl.onewire4j.request.communication.AdapterVersion;
 import de.ibapl.onewire4j.request.communication.BitResult;
 import de.ibapl.onewire4j.request.communication.CommunicationRequest;
 import de.ibapl.onewire4j.request.communication.DataToSend;
+import de.ibapl.onewire4j.request.communication.OneWireSpeed;
 import de.ibapl.onewire4j.request.communication.PulsePower;
 import de.ibapl.onewire4j.request.communication.PulseRequest;
 import de.ibapl.onewire4j.request.communication.PulseResponse;
@@ -49,7 +49,6 @@ import de.ibapl.onewire4j.request.communication.ResetResult;
 import de.ibapl.onewire4j.request.communication.SearchAcceleratorCommand;
 import de.ibapl.onewire4j.request.communication.SingleBitRequest;
 import de.ibapl.onewire4j.request.communication.SingleBitResponse;
-import de.ibapl.onewire4j.request.communication.OneWireSpeed;
 import de.ibapl.onewire4j.request.configuration.ConfigurationReadRequest;
 import de.ibapl.onewire4j.request.configuration.ConfigurationRequest;
 import de.ibapl.onewire4j.request.configuration.ConfigurationWriteRequest;
@@ -57,7 +56,7 @@ import de.ibapl.onewire4j.request.configuration.DataSampleOffsetAndWrite0Recover
 import de.ibapl.onewire4j.request.configuration.LoadSensorThreshold;
 import de.ibapl.onewire4j.request.configuration.ProgrammingPulseDuration;
 import de.ibapl.onewire4j.request.configuration.PullDownSlewRateParam;
-import de.ibapl.onewire4j.request.configuration.RS232BaudRate;
+import de.ibapl.onewire4j.request.configuration.SerialPortSpeed;
 import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
 import de.ibapl.onewire4j.request.configuration.Write1LowTime;
 import de.ibapl.onewire4j.request.data.DataRequest;
@@ -67,7 +66,7 @@ import de.ibapl.onewire4j.request.data.SearchCommand;
 
 /**
  *
- * @author aploese
+ * @author Arne Plöse
  */
 public class Decoder {
 
@@ -96,10 +95,10 @@ public class Decoder {
 		if (request instanceof CommandRequest) {
 			if (request instanceof ConfigurationRequest) {
 				if (request instanceof ConfigurationReadRequest) {
-					request.response = (R) decodeConfigurationReadResponse((ConfigurationReadRequest<R>) request,
+					request.response = decodeConfigurationReadResponse((ConfigurationReadRequest<R>) request,
 							readByte());
 				} else if (request instanceof ConfigurationWriteRequest) {
-					request.response = (R) decodeConfigurationWriteResponse((ConfigurationWriteRequest<R>) request,
+					request.response = decodeConfigurationWriteResponse((ConfigurationWriteRequest<R>) request,
 							readByte());
 				} else {
 					throw new RuntimeException("Unknown subtype of ConfigurationRequest: " + request.getClass());
@@ -492,29 +491,29 @@ public class Decoder {
 		}
 	}
 
-	RS232BaudRate decodeRBR(final byte b) throws RuntimeException {
+	SerialPortSpeed decodeRBR(final byte b) throws RuntimeException {
 		if (((b & 0xF0) != 0x70) && ((b & 0xF0) != 0x00)) {
 			throw new RuntimeException("No RBR: 0x" + Integer.toHexString(b));
 		}
 		switch (b & 0x0F) {
 		case 0x00:
-			return RS232BaudRate.RBR_9_6;
+			return SerialPortSpeed.SPS_9_6;
 		case 0x02:
-			return RS232BaudRate.RBR_19_2;
+			return SerialPortSpeed.SPS_19_2;
 		case 0x04:
-			return RS232BaudRate.RBR_57_6;
+			return SerialPortSpeed.SPS_57_6;
 		case 0x06:
-			return RS232BaudRate.RBR_115_2;
+			return SerialPortSpeed.SPS_115_2;
 		case 0x08:
-			return RS232BaudRate.RBR_9_6_I;
+			return SerialPortSpeed.SPS_9_6_I;
 		case 0x0A:
-			return RS232BaudRate.RBR_19_2_I;
+			return SerialPortSpeed.SPS_19_2_I;
 		case 0x0C:
-			return RS232BaudRate.RBR_57_6_I;
+			return SerialPortSpeed.SPS_57_6_I;
 		case 0x0E:
-			return RS232BaudRate.RBR_115_2_I;
+			return SerialPortSpeed.SPS_115_2_I;
 		default:
-			throw new RuntimeException("Cant handle RBR byte value: " + b);
+			throw new IllegalArgumentException("Cant handle RBR byte value: " + b);
 		}
 	}
 

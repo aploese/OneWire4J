@@ -1,10 +1,8 @@
-package de.ibapl.onewire4j.container;
-
 /*-
  * #%L
  * OneWire4J
  * %%
- * Copyright (C) 2017 Arne Plöse
+ * Copyright (C) 2017 - 2018 Arne Plöse
  * %%
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
  * Copyright (C) 2009, 2017, Arne Plöse and individual contributors as indicated
@@ -27,10 +25,11 @@ package de.ibapl.onewire4j.container;
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  * #L%
  */
+package de.ibapl.onewire4j.container;
 
 /**
  *
- * @author aploese
+ * @author Arne Plöse
  */
 @DeviceInfo(oneWireName="DS18B20,DS1820B,DS18B20X", iButtonName="")
 public class OneWireDevice28 extends OneWireDevice implements TemperatureContainer {
@@ -46,7 +45,7 @@ public class OneWireDevice28 extends OneWireDevice implements TemperatureContain
 			// Sometimes 85°C appears maybe a hidden conversation error??
 			throw new ENotProperlyConvertedException(85);
 		}
-		final double result = (double) intTemperature / 16.0; // converts integer to a double
+		final double result = intTemperature / 16.0; // converts integer to a double
 		return (result);
 	}
 

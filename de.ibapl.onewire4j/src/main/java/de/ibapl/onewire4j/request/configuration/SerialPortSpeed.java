@@ -1,10 +1,8 @@
-package de.ibapl.onewire4j.request.configuration;
-
 /*-
  * #%L
  * OneWire4J
  * %%
- * Copyright (C) 2017 Arne Plöse
+ * Copyright (C) 2017 - 2018 Arne Plöse
  * %%
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
  * Copyright (C) 2009, 2017, Arne Plöse and individual contributors as indicated
@@ -27,32 +25,34 @@ package de.ibapl.onewire4j.request.configuration;
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  * #L%
  */
+package de.ibapl.onewire4j.request.configuration;
 
 /**
  *
- * @author aploese
+ * @author Arne Plöse
  */
-public enum RS232BaudRate {
-    RBR_9_6,
-    RBR_19_2,
-    RBR_57_6,
-    RBR_115_2,
-    RBR_9_6_I,
-    RBR_19_2_I,
-    RBR_57_6_I,
-    RBR_115_2_I;
+public enum SerialPortSpeed {
+    SPS_9_6,
+    SPS_19_2,
+    SPS_57_6,
+    SPS_115_2,
+    SPS_9_6_I,
+    SPS_19_2_I,
+    SPS_57_6_I,
+    SPS_115_2_I;
     
-    public String toString() {
+    @Override
+	public String toString() {
         switch (this) {
-            case RBR_9_6: return "9600 bps";
-            case RBR_19_2: return "19200 bps";
-            case RBR_57_6: return "57600 bps";
-            case RBR_115_2: return "115200 bps";
-            case RBR_9_6_I: return "9600 bps (inverted)";
-            case RBR_19_2_I: return "19200 bps (inverted)";
-            case RBR_57_6_I: return "57600 bps (inverted)";
-            case RBR_115_2_I: return "115200 bps (inverted)";
-            default: throw new RuntimeException("cant ahndle value: " + name());
+            case SPS_9_6: return "9600 bps";
+            case SPS_19_2: return "19200 bps";
+            case SPS_57_6: return "57600 bps";
+            case SPS_115_2: return "115200 bps";
+            case SPS_9_6_I: return "9600 bps (inverted)";
+            case SPS_19_2_I: return "19200 bps (inverted)";
+            case SPS_57_6_I: return "57600 bps (inverted)";
+            case SPS_115_2_I: return "115200 bps (inverted)";
+            default: throw new IllegalArgumentException("cant ahndle value: " + name());
         }
     }
 }

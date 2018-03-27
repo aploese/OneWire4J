@@ -1,10 +1,8 @@
-package de.ibapl.onewire4j;
-
 /*-
  * #%L
  * OneWire4J
  * %%
- * Copyright (C) 2017 Arne Plöse
+ * Copyright (C) 2017 - 2018 Arne Plöse
  * %%
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
  * Copyright (C) 2009, 2017, Arne Plöse and individual contributors as indicated
@@ -27,6 +25,17 @@ package de.ibapl.onewire4j;
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  * #L%
  */
+package de.ibapl.onewire4j;
+
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import de.ibapl.onewire4j.container.OneWireContainer;
 import de.ibapl.onewire4j.container.OneWireDevice;
@@ -35,6 +44,7 @@ import de.ibapl.onewire4j.request.OneWireRequest;
 import de.ibapl.onewire4j.request.PulseTerminationRequest;
 import de.ibapl.onewire4j.request.communication.CommunicationRequest;
 import de.ibapl.onewire4j.request.communication.DataToSend;
+import de.ibapl.onewire4j.request.communication.OneWireSpeed;
 import de.ibapl.onewire4j.request.communication.PulsePower;
 import de.ibapl.onewire4j.request.communication.PulseRequest;
 import de.ibapl.onewire4j.request.communication.PulseType;
@@ -43,7 +53,6 @@ import de.ibapl.onewire4j.request.communication.SearchAccelerator;
 import de.ibapl.onewire4j.request.communication.SearchAcceleratorCommand;
 import de.ibapl.onewire4j.request.communication.SingleBitRequest;
 import de.ibapl.onewire4j.request.communication.SingleBitResponse;
-import de.ibapl.onewire4j.request.communication.OneWireSpeed;
 import de.ibapl.onewire4j.request.configuration.CommandType;
 import de.ibapl.onewire4j.request.configuration.ConfigurationReadRequest;
 import de.ibapl.onewire4j.request.configuration.ConfigurationWriteRequest;
@@ -56,25 +65,16 @@ import de.ibapl.onewire4j.request.data.DataRequestWithDeviceCommand;
 import de.ibapl.onewire4j.request.data.RawDataRequest;
 import de.ibapl.onewire4j.request.data.ReadBytesRequest;
 import de.ibapl.onewire4j.request.data.SearchCommand;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.function.Consumer;
-
 import de.ibapl.spsw.api.DataBits;
 import de.ibapl.spsw.api.FlowControl;
 import de.ibapl.spsw.api.Parity;
 import de.ibapl.spsw.api.SerialPortSocket;
 import de.ibapl.spsw.api.Speed;
 import de.ibapl.spsw.api.StopBits;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
- * @author aploese
+ * @author Arne Plöse
  */
 public class DS2480BAdapter implements OneWireAdapter {
     
@@ -92,6 +92,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 	private Decoder decoder;
     private OneWireSpeed speedFromBaudrate = OneWireSpeed.FLEX;
 	
+	@Override
 	public OneWireSpeed getSpeedFromBaudrate() {
 		return speedFromBaudrate;
 	}
@@ -170,6 +171,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 		}
 	}
 
+	@Override
 	public void setSerialPort(SerialPortSocket serialPort) {
 		this.serialPort = serialPort;
 	}
