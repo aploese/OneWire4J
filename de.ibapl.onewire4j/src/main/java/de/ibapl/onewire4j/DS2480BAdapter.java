@@ -49,6 +49,7 @@ import de.ibapl.onewire4j.request.communication.PulsePower;
 import de.ibapl.onewire4j.request.communication.PulseRequest;
 import de.ibapl.onewire4j.request.communication.PulseType;
 import de.ibapl.onewire4j.request.communication.ResetDeviceRequest;
+import de.ibapl.onewire4j.request.communication.ResetDeviceResponse;
 import de.ibapl.onewire4j.request.communication.SearchAccelerator;
 import de.ibapl.onewire4j.request.communication.SearchAcceleratorCommand;
 import de.ibapl.onewire4j.request.communication.SingleBitRequest;
@@ -293,7 +294,8 @@ public class DS2480BAdapter implements OneWireAdapter {
 		encoder.encode(request);
 		os.flush();
 
-		return decoder.decode(request);
+		decoder.decode(request);
+		return request.response;
 	}
 
 	@Override
@@ -330,6 +332,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 		final DataRequestWithDeviceCommand request = new DataRequestWithDeviceCommand(Encoder.MATCH_ROM_CMD,
 				OneWireContainer.arrayOfLong(address));
 		sendCommand(request);
+		
 		long result = OneWireContainer.addressOf(request.response);
 		if (result != address) {
 			throw new IllegalArgumentException();
@@ -338,9 +341,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 
 	@Override
 	public byte[] sendRawDataRequest(byte[] data) throws IOException {
-		final RawDataRequest request = new RawDataRequest(data);
-		sendCommand(request);
-		return request.response;
+		return sendCommand(new RawDataRequest(data));
 	}
 
 	@Override
@@ -349,26 +350,27 @@ public class DS2480BAdapter implements OneWireAdapter {
 	}
 
 	@Override
-	public void sendReset() throws IOException {
-		sendCommand(ResetDeviceRequest.of(getSpeedFromBaudrate()));
+	public ResetDeviceResponse sendReset() throws IOException {
+		return sendCommand(ResetDeviceRequest.of(getSpeedFromBaudrate()));
 	}
 
 	@Override
-	public void sendSkipRomRequest() throws IOException {
+	public byte[] sendSkipRomRequest() throws IOException {
 		sendReset();
 		final DataRequestWithDeviceCommand request = new DataRequestWithDeviceCommand(Encoder.SKIP_ROM_CMD,
 				new byte[0]);
-		sendCommand(request);
+		return sendCommand(request);
 	}
 
 	@Override
-	public void sendTerminatePulse() throws IOException {
+	public Byte sendTerminatePulse() throws IOException {
 		CommandRequest<?>[] requests = new CommandRequest[3];
 		requests[0] = new PulseTerminationRequest();
 		requests[1] = PulseRequest.of(PulsePower.STRONG_PULLUP, PulseType.DISARM);
 		requests[2] = new PulseTerminationRequest();
 		sendCommands(requests);
-		// TODO check response
+		return (Byte)requests[2].response;
+		//TODO check response ???
 	}
 
 	/**

@@ -34,6 +34,7 @@ import java.util.function.LongConsumer;
 import de.ibapl.onewire4j.container.OneWireContainer;
 import de.ibapl.onewire4j.request.OneWireRequest;
 import de.ibapl.onewire4j.request.communication.OneWireSpeed;
+import de.ibapl.onewire4j.request.communication.ResetDeviceResponse;
 import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
 
 /**
@@ -89,7 +90,7 @@ public interface OneWireAdapter extends AutoCloseable {
 
 	void sendMatchRomRequest(long address) throws IOException;
 
-	void sendReset() throws IOException;
+	ResetDeviceResponse sendReset() throws IOException;
 
 	byte[] sendRawDataRequest(byte[] data) throws IOException;
 
@@ -101,9 +102,9 @@ public interface OneWireAdapter extends AutoCloseable {
 
 	void sendCommands(OneWireRequest<?>... requests) throws IOException;
 
-	void sendTerminatePulse() throws IOException;
+	Byte sendTerminatePulse() throws IOException;
 
-	void sendSkipRomRequest() throws IOException;
+	byte[] sendSkipRomRequest() throws IOException;
 
 	byte sendReadByteRequest() throws IOException;
 

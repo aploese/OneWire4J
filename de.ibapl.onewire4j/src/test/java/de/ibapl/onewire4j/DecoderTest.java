@@ -105,7 +105,7 @@ public class DecoderTest {
         assertEquals(SerialPortSpeed.SPS_9_6, request.response);
         SingleBitRequest singleBitRequest = new SingleBitRequest(OneWireSpeed.STANDARD, DataToSend.WRITE_0_BIT, false);
 
-        request.waitForResponse();
+        singleBitRequest.waitForResponse();
         decoder.decode(singleBitRequest);
         assertEquals(OneWireSpeed.STANDARD, singleBitRequest.response.speed);
         assertEquals(BitResult._1_READ_BACK, singleBitRequest.response.bitResult);

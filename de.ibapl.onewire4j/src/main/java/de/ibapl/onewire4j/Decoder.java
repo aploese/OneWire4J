@@ -88,89 +88,96 @@ public class Decoder {
 		return (byte)result;
 	}
 
-	public <R> R decode(OneWireRequest<R> request) throws IOException {
+	public <R> void decode(OneWireRequest<R> request) throws IOException {
 			request.throwIfNot(RequestState.WAIT_FOR_RESPONSE);
 			
 			if (request instanceof CommandRequest) {
 			if (request instanceof ConfigurationRequest) {
 				if (request instanceof ConfigurationReadRequest) {
-					request.response = decodeConfigurationReadResponse((ConfigurationReadRequest<R>) request,
-							readByte());
+					decodeConfigurationReadResponse((ConfigurationReadRequest<R>) request, readByte());
 				} else if (request instanceof ConfigurationWriteRequest) {
-					request.response = decodeConfigurationWriteResponse((ConfigurationWriteRequest<R>) request,
-							readByte());
+					decodeConfigurationWriteResponse((ConfigurationWriteRequest<R>) request, readByte());
 				} else {
-					throw new RuntimeException("Unknown subtype of ConfigurationRequest: " + request.getClass());
+					throw new IllegalArgumentException("Unknown subtype of ConfigurationRequest: " + request.getClass());
 				}
 			} else if (request instanceof CommunicationRequest) {
 				if (request instanceof SingleBitRequest) {
-					request.response = (R) decodeSingleBitResponse((SingleBitRequest) request, readByte());
+					decodeSingleBitResponse((SingleBitRequest) request, readByte());
 				} else if (request instanceof SearchAcceleratorCommand) {
-					// No Op
+					request.success();
 				} else if (request instanceof ResetDeviceRequest) {
-					request.response = (R) decodeResetDeviceResponse((ResetDeviceRequest) request, readByte());
+					decodeResetDeviceResponse((ResetDeviceRequest) request, readByte());
 				} else if (request instanceof PulseRequest) {
 					if (spud == StrongPullupDuration.SPUD_POSITIVE_INFINITY) {
-						request.response = (R) decodePulseResponse((PulseRequest) request);
+						decodePulseResponse((PulseRequest) request);
 					} else {
-						request.response = (R) decodePulseResponse((PulseRequest) request, readByte());
+						decodePulseResponse((PulseRequest) request, readByte());
 					}
 				} else if (request instanceof PulseTerminationRequest) {
-					request.response = (R) decodePulseTerminationResponse((PulseTerminationRequest) request,
-							readByte());
+					decodePulseTerminationResponse((PulseTerminationRequest) request, readByte());
 				} else {
-					throw new RuntimeException("Unknown subtype of CommunicationRequest: " + request.getClass());
+					throw new IllegalArgumentException("Unknown subtype of CommunicationRequest: " + request.getClass());
 				}
 			} else {
-				throw new RuntimeException("Unknown subtype of CommandRequest: " + request.getClass());
+				throw new IllegalArgumentException("Unknown subtype of CommandRequest: " + request.getClass());
 			}
 		} else if (request instanceof DataRequest) {
 			if (request instanceof SearchCommand) {
-				final int data = readByte();
-				if (data == 0xF0) {
-					((SearchCommand) request).response = true;
-				}
+				decodeSearchCommand((SearchCommand)request);
 			} else if (request instanceof RawDataRequest) {
-				final RawDataRequest r = (RawDataRequest) request;
-				int readed = 0;
-				while (readed < r.response.length) {
-					final int count = is.read(r.response, readed, r.response.length - readed);
-					if (count < 0) {
-						throw new EOFException();
-					}
-					readed += count;
-				}
+				decodeRawDataRequest((RawDataRequest) request);
 			} else if (request instanceof DataRequestWithDeviceCommand) {
-				final DataRequestWithDeviceCommand r = (DataRequestWithDeviceCommand)request;
-				if (r.command != readByte()) {
-					throw new RuntimeException("Wrong command");
-				}
-				int readed = 0;
-				while (readed < r.response.length) {
-					final int count = is.read(r.response, readed, r.response.length - readed);
-					if (count < 0) {
-						throw new EOFException();
-					}
-					readed += count;
-				}
+				decodeDataRequestWithDeviceCommand((DataRequestWithDeviceCommand)request);
 			} else {
-				throw new RuntimeException("NOT IMPLEMENTED: " + request.getClass());
+				throw new IllegalArgumentException("NOT IMPLEMENTED: " + request.getClass());
 			}
 		} else {
 			throw new RuntimeException("Unknown subtype of CommandRequest: " + request.getClass());
 		}
+	}
+
+	private void decodeSearchCommand(SearchCommand request) throws IOException {
+		final int data = readByte();
+		((SearchCommand) request).response = data == 0xF0;
 		request.success();
-		return request.response;
 	}
 
-	private PulseResponse decodePulseResponse(PulseRequest request) {
-		PulseResponse response = new PulseResponse();
+	private void decodeRawDataRequest(RawDataRequest request) throws IOException {
+		int readed = 0;
+		while (readed < request.response.length) {
+			final int count = is.read(request.response, readed, request.response.length - readed);
+			if (count < 0) {
+				throw new EOFException();
+			}
+			readed += count;
+		}
+		request.success();
+	}
+
+	private void decodeDataRequestWithDeviceCommand(DataRequestWithDeviceCommand request) throws IOException {
+		if (request.command != readByte()) {
+			throw new IllegalArgumentException("Wrong command");
+		}
+		int readed = 0;
+		while (readed < request.response.length) {
+			final int count = is.read(request.response, readed, request.response.length - readed);
+			if (count < 0) {
+				throw new EOFException();
+			}
+			readed += count;
+		}
+		request.success();
+	}
+
+	private void decodePulseResponse(PulseRequest request) {
+		final PulseResponse response = new PulseResponse();
 		response.strongPullupDuration = spud;
-		return response;
+		request.response = response;
+		request.success();
 	}
 
-	private PulseResponse decodePulseResponse(PulseRequest request, int b) {
-		PulseResponse response = new PulseResponse();
+	private void decodePulseResponse(PulseRequest request, int b) {
+		final PulseResponse response = new PulseResponse();
 		if ((b & 0b111_0_11_00) != 0b111_0_11_00) {
 			throw new RuntimeException("Wrong Pulse Response expected 0b111_p_11_xx but got: 0b" + Integer.toBinaryString(b & 0xff));
 		}
@@ -180,21 +187,23 @@ public class Decoder {
 			response.pulsePower = PulsePower.STRONG_PULLUP;
 		}
 		response.strongPullupDuration = spud;
-		return response;
+		 request.response = response;
+		 request.success();
 	}
 
-	Byte decodePulseTerminationResponse(PulseTerminationRequest request, byte b) {
+	private void decodePulseTerminationResponse(PulseTerminationRequest request, byte b) {
 		if ((b & 0b111111_00) != 0b111011_00) {
 			// some adapters return 0xf1
 			if (b  != (byte)0b11110001) {
 				//TODO if not armed then we got here a 0b10010011 as response of 0xf1 request ??
-			throw new RuntimeException("Wrong Pulse Termination Response expected 0b111011xx but got: 0b" + Integer.toBinaryString(b & 0xff));
+				throw new RuntimeException("Wrong Pulse Termination Response expected 0b111011xx but got: 0b" + Integer.toBinaryString(b & 0xff));
 		}
 		}
-		return (byte) b;
+		request.response = (byte) b;
+		request.success();
 	}
 
-	ResetDeviceResponse decodeResetDeviceResponse(ResetDeviceRequest request, int b) {
+	private void decodeResetDeviceResponse(ResetDeviceRequest request, int b) {
 		if ((b & 0b110_0_00_00) != 0b110_0_00_00) {
 			throw new RuntimeException("No ResetDeviceResponse: 0x" + Integer.toHexString(b));
 		}
@@ -245,12 +254,12 @@ public class Decoder {
 			throw new RuntimeException("Unknown reset result: 0x" + Integer.toHexString(b));
 		}
 		request.response = response;
-		return response;
+		request.success();
 	}
 
-	SingleBitResponse decodeSingleBitResponse(SingleBitRequest request, final int b) {
+	private void decodeSingleBitResponse(SingleBitRequest request, final int b) {
 		if ((b & 0b111_0_00_00) != 0b100_0_00_00) {
-			throw new RuntimeException("No SingleBitResponse: 0x" + Integer.toHexString(b));
+			throw new IllegalArgumentException("No SingleBitResponse: 0x" + Integer.toHexString(b));
 		}
 		final SingleBitResponse response = new SingleBitResponse();
 		if ((b & 0b000_1_00_00) == 0b000_1_00_00) {
@@ -272,7 +281,7 @@ public class Decoder {
 			response.speed = OneWireSpeed.STANDARD_11;
 			break;
 		default:
-			throw new RuntimeException("Unknown speed: 0x" + Integer.toHexString(b));
+			throw new IllegalArgumentException("Unknown speed: 0x" + Integer.toHexString(b));
 		}
 		switch (b & 0b000_0_00_11) {
 		case 0b000_0_00_00:
@@ -282,60 +291,77 @@ public class Decoder {
 			response.bitResult = BitResult._1_READ_BACK;
 			break;
 		default:
-			throw new RuntimeException("Unknown bit result: 0x" + Integer.toHexString(b));
+			throw new IllegalArgumentException("Unknown bit result: 0x" + Integer.toHexString(b));
 		}
-		return response;
+		request.response = response;
+		request.success();
 	}
 
 	@SuppressWarnings("unchecked")
-	<R> R decodeConfigurationReadResponse(ConfigurationReadRequest<R> request, final int b) {
+	private <R> void decodeConfigurationReadResponse(ConfigurationReadRequest<R> request, final int b) {
 		switch (request.commandType) {
 		case PDSRC:
-			return (R) decodePDSRC((byte) b);
+			request.response = (R)decodePDSRC((byte) b);
+			break;
 		case PPD:
-			return (R) decodePPD((byte) b);
+			request.response = (R) decodePPD((byte) b);
+			break;
 		case SPUD:
 			this.spud = decodeSPUD((byte) b); 
-			return (R) this.spud;
+			request.response = (R) this.spud;
+			break;
 		case W1LT:
-			return (R) decodeW1LT((byte) b);
+			request.response = (R) decodeW1LT((byte) b);
+			break;
 		case DSO_AND_W0RT:
-			return (R) decodeDSO_AND_W0RT((byte) b);
+			request.response = (R) decodeDSO_AND_W0RT((byte) b);
+			break;
 		case LST:
-			return (R) decodeLST((byte) b);
+			request.response = (R) decodeLST((byte) b);
+			break;
 		case RBR:
-			return (R) decodeRBR((byte) b);
+			request.response = (R) decodeRBR((byte) b);
+			break;
 		default:
-			throw new RuntimeException("Cant handle configuration read response value: " + request.commandType);
+			throw new IllegalArgumentException("Cant handle configuration read response value: " + request.commandType);
 		}
+		request.success();
 	}
 
 	@SuppressWarnings("unchecked")
-	<R> R decodeConfigurationWriteResponse(ConfigurationWriteRequest<R> request, final int b) {
+	private <R> void decodeConfigurationWriteResponse(ConfigurationWriteRequest<R> request, final int b) {
 		switch (request.commandType) {
 		case PDSRC:
-			return (R) decodePDSRC((byte) b);
+			request.response = (R) decodePDSRC((byte) b);
+			break;
 		case PPD:
-			return (R) decodePPD((byte) b);
+			request.response = (R) decodePPD((byte) b);
+			break;
 		case SPUD:
 			this.spud = decodeSPUD((byte) b);
-			return (R) this.spud;
+			request.response = (R) this.spud;
+			break;
 		case W1LT:
-			return (R) decodeW1LT((byte) b);
+			request.response = (R) decodeW1LT((byte) b);
+			break;
 		case DSO_AND_W0RT:
-			return (R) decodeDSO_AND_W0RT((byte) b);
+			request.response = (R) decodeDSO_AND_W0RT((byte) b);
+			break;
 		case LST:
-			return (R) decodeLST((byte) b);
+			request.response = (R) decodeLST((byte) b);
+			break;
 		case RBR:
-			return (R) decodeRBR((byte) b);
+			request.response = (R) decodeRBR((byte) b);
+			break;
 		default:
-			throw new RuntimeException("Cant handle configuration write response value: " + request.commandType);
+			throw new IllegalArgumentException("Cant handle configuration write response value: " + request.commandType);
 		}
+		request.success();
 	}
 
-	ProgrammingPulseDuration decodePPD(final byte b) throws RuntimeException {
+	private ProgrammingPulseDuration decodePPD(final byte b) throws RuntimeException {
 		if (((b & 0xF0) != 0x20) && ((b & 0xF0) != 0x00)) {
-			throw new RuntimeException("No PPD: 0x" + Integer.toHexString(b));
+			throw new IllegalArgumentException("No PPD: 0x" + Integer.toHexString(b));
 		}
 		switch (b & 0x0F) {
 		case 0x00:
@@ -355,13 +381,13 @@ public class Decoder {
 		case 0x0E:
 			return ProgrammingPulseDuration.PPD_POSITIVE_INFINITY;
 		default:
-			throw new RuntimeException("Cant handle PPD byte value: " + b);
+			throw new IllegalArgumentException("Cant handle PPD byte value: " + b);
 		}
 	}
 
-	PullDownSlewRateParam decodePDSRC(final byte b) throws RuntimeException {
+	private PullDownSlewRateParam decodePDSRC(final byte b) throws RuntimeException {
 		if (((b & 0xF0) != 0x10) && ((b & 0xF0) != 0x00)) {
-			throw new RuntimeException("No PDSRC: 0x" + Integer.toHexString(b));
+			throw new IllegalArgumentException("No PDSRC: 0x" + Integer.toHexString(b));
 		}
 		switch (b & 0x0F) {
 		case 0x00:
@@ -381,13 +407,13 @@ public class Decoder {
 		case 0x0E:
 			return PullDownSlewRateParam.PDSRC_0_55;
 		default:
-			throw new RuntimeException("Cant handle PDSRC byte value: " + b);
+			throw new IllegalArgumentException("Cant handle PDSRC byte value: " + b);
 		}
 	}
 
-	StrongPullupDuration decodeSPUD(final byte b) throws RuntimeException {
+	private StrongPullupDuration decodeSPUD(final byte b) throws RuntimeException {
 		if (((b & 0xF0) != 0x30) && ((b & 0xF0) != 0x00)) {
-			throw new RuntimeException("No SPUD: 0x" + Integer.toHexString(b));
+			throw new IllegalArgumentException("No SPUD: 0x" + Integer.toHexString(b));
 		}
 		switch (b & 0x0F) {
 		case 0x00:
@@ -407,13 +433,13 @@ public class Decoder {
 		case 0x0E:
 			return StrongPullupDuration.SPUD_POSITIVE_INFINITY;
 		default:
-			throw new RuntimeException("Cant handle SPUD byte value: " + b);
+			throw new IllegalArgumentException("Cant handle SPUD byte value: " + b);
 		}
 	}
 
-	Write1LowTime decodeW1LT(final byte b) throws RuntimeException {
+	private Write1LowTime decodeW1LT(final byte b) throws RuntimeException {
 		if (((b & 0xF0) != 0x40) && ((b & 0xF0) != 0x00)) {
-			throw new RuntimeException("No W1LT: 0x" + Integer.toHexString(b));
+			throw new IllegalArgumentException("No W1LT: 0x" + Integer.toHexString(b));
 		}
 		switch (b & 0x0F) {
 		case 0x00:
@@ -433,13 +459,13 @@ public class Decoder {
 		case 0x0E:
 			return Write1LowTime.W1LT_15;
 		default:
-			throw new RuntimeException("Cant handle W1LT byte value: " + b);
+			throw new IllegalArgumentException("Cant handle W1LT byte value: " + b);
 		}
 	}
 
-	DataSampleOffsetAndWrite0RecoveryTime decodeDSO_AND_W0RT(final byte b) throws RuntimeException {
+	private DataSampleOffsetAndWrite0RecoveryTime decodeDSO_AND_W0RT(final byte b) throws RuntimeException {
 		if (((b & 0xF0) != 0x50) && ((b & 0xF0) != 0x00)) {
-			throw new RuntimeException("No DSO_AND_W0RT: 0x" + Integer.toHexString(b));
+			throw new IllegalArgumentException("No DSO_AND_W0RT: 0x" + Integer.toHexString(b));
 		}
 		switch (b & 0x0F) {
 		case 0x00:
@@ -459,13 +485,13 @@ public class Decoder {
 		case 0x0E:
 			return DataSampleOffsetAndWrite0RecoveryTime.DSO_AND_W0RT_10;
 		default:
-			throw new RuntimeException("Cant handle DSO_AND_W0RT byte value: " + b);
+			throw new IllegalArgumentException("Cant handle DSO_AND_W0RT byte value: " + b);
 		}
 	}
 
-	LoadSensorThreshold decodeLST(final byte b) throws RuntimeException {
+	private LoadSensorThreshold decodeLST(final byte b) throws RuntimeException {
 		if (((b & 0xF0) != 0x60) && ((b & 0xF0) != 0x00)) {
-			throw new RuntimeException("No LST: 0x" + Integer.toHexString(b));
+			throw new IllegalArgumentException("No LST: 0x" + Integer.toHexString(b));
 		}
 		switch (b & 0x0F) {
 		case 0x00:
@@ -485,13 +511,13 @@ public class Decoder {
 		case 0x0E:
 			return LoadSensorThreshold.LST_3_9;
 		default:
-			throw new RuntimeException("Cant handle LST byte value: " + b);
+			throw new IllegalArgumentException("Cant handle LST byte value: " + b);
 		}
 	}
 
-	SerialPortSpeed decodeRBR(final byte b) throws RuntimeException {
+	private SerialPortSpeed decodeRBR(final byte b) throws RuntimeException {
 		if (((b & 0xF0) != 0x70) && ((b & 0xF0) != 0x00)) {
-			throw new RuntimeException("No RBR: 0x" + Integer.toHexString(b));
+			throw new IllegalArgumentException("No RBR: 0x" + Integer.toHexString(b));
 		}
 		switch (b & 0x0F) {
 		case 0x00:
