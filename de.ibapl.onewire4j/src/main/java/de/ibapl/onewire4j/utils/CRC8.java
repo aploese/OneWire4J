@@ -28,7 +28,8 @@
 package de.ibapl.onewire4j.utils;
 
 /**
- *
+ * Utility class for CRC8 check sums.
+ * 
  * @author Arne Plöse
  */
 public class CRC8 {

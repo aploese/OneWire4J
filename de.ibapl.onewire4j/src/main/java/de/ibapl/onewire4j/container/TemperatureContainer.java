@@ -80,6 +80,14 @@ public interface TemperatureContainer extends OneWireContainer {
 		return ts;
 	}
 
+	/**
+	 * Returns true if at least one temperature device needs parasite power.
+	 * If at least one device needs parasite power one can not do a bulk conversation and one must the slower device by device approach.
+	 * 
+	 * @param adapter
+	 * @return
+	 * @throws IOException
+	 */
 	public static boolean isParasitePower(OneWireAdapter adapter) throws IOException {
 		adapter.sendSkipRomRequest();
 		
