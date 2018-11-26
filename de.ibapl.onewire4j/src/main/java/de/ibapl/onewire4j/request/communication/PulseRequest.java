@@ -27,20 +27,31 @@
  */
 package de.ibapl.onewire4j.request.communication;
 
+import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
+
 /**
  *
  * @author Arne Plöse
  */
 public class PulseRequest extends CommunicationRequest<PulseResponse> {
-	
-	public static PulseRequest of(PulsePower pulsePower, PulseType pulseType) {
-		PulseRequest result = new PulseRequest();
-		result.pulsePower = pulsePower;
-		result.pulseType =pulseType;
-		return result;
-	}
-	
-	public PulsePower pulsePower;
-	public PulseType pulseType;
-	
+
+    public static PulseRequest of(PulsePower pulsePower, PulseType pulseType) {
+        PulseRequest result = new PulseRequest();
+        result.pulsePower = pulsePower;
+        result.pulseType = pulseType;
+        return result;
+    }
+
+    public PulsePower pulsePower;
+    public PulseType pulseType;
+
+    @Override
+    public int responseSize(StrongPullupDuration spd) {
+        if (spd == StrongPullupDuration.SPUD_POSITIVE_INFINITY) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
 }

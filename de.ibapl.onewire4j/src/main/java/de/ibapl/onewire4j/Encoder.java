@@ -55,9 +55,7 @@ import de.ibapl.onewire4j.request.data.DataRequest;
 import de.ibapl.onewire4j.request.data.DataRequestWithDeviceCommand;
 import de.ibapl.onewire4j.request.data.RawDataRequest;
 import de.ibapl.onewire4j.request.data.SearchCommand;
-import de.ibapl.spsw.api.SerialPortSocket;
 import java.nio.ByteBuffer;
-import java.nio.channels.ByteChannel;
 import java.nio.channels.WritableByteChannel;
 
 /**

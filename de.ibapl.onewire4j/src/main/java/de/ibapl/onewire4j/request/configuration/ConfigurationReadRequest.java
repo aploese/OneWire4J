@@ -40,5 +40,10 @@ public class ConfigurationReadRequest<R>  extends ConfigurationRequest<R>{
     }
     
     public CommandType commandType;
+
+    @Override
+    public int responseSize(StrongPullupDuration spd) {
+        return 1;
+    }
  
 }

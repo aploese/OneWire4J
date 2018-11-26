@@ -27,23 +27,31 @@
  */
 package de.ibapl.onewire4j.request.communication;
 
+import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
 
 /**
  *
  * @author Arne Plöse
  */
 public class SingleBitRequest extends CommunicationRequest<SingleBitResponse> {
-	public DataToSend dataToSend;
-	public OneWireSpeed speed;
-	public boolean armPowerDelivery;
 
-	public SingleBitRequest(OneWireSpeed speed, DataToSend dataToSend, boolean armPowerDelivery) {
-		this.speed = speed;
-		this.dataToSend = dataToSend;
-		this.armPowerDelivery = armPowerDelivery;
-		
-	}
+    public DataToSend dataToSend;
+    public OneWireSpeed speed;
+    public boolean armPowerDelivery;
 
-	public SingleBitRequest() {
-	}
+    public SingleBitRequest(OneWireSpeed speed, DataToSend dataToSend, boolean armPowerDelivery) {
+        this.speed = speed;
+        this.dataToSend = dataToSend;
+        this.armPowerDelivery = armPowerDelivery;
+
+    }
+
+    public SingleBitRequest() {
+    }
+
+    @Override
+    public int responseSize(StrongPullupDuration spd) {
+        return 1;
+    }
+
 }

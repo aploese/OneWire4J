@@ -33,7 +33,7 @@ import de.ibapl.onewire4j.request.OneWireRequest;
  *
  * @author Arne Plöse
  */
-public class DataRequest<R> extends OneWireRequest<R> {
+public abstract class DataRequest<R> extends OneWireRequest<R> {
 
 	public final static byte ONE_WIRE_READ_BYTE_FILLER = (byte)0xff;
 

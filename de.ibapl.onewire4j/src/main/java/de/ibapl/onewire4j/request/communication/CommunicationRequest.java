@@ -33,6 +33,6 @@ import de.ibapl.onewire4j.request.CommandRequest;
  *
  * @author Arne Plöse
  */
-public class CommunicationRequest<R> extends CommandRequest<R> {
+public abstract class CommunicationRequest<R> extends CommandRequest<R> {
 
 }

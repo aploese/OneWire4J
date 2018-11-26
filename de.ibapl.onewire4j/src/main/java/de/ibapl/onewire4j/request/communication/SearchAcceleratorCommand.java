@@ -28,6 +28,7 @@
 package de.ibapl.onewire4j.request.communication;
 
 import de.ibapl.onewire4j.request.VoidResponse;
+import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
 
 /**
  *
@@ -44,5 +45,10 @@ public class SearchAcceleratorCommand extends CommunicationRequest<VoidResponse>
 
 	public SearchAccelerator searchAccelerator;
 	public OneWireSpeed speed;
+
+    @Override
+    public int responseSize(StrongPullupDuration spd) {
+        return 0;
+    }
 	
 }

@@ -85,4 +85,9 @@ public class ConfigurationWriteRequest<R>  extends ConfigurationRequest<R>{
     public CommandType commandType;
     public R propertyValue;
 
+    @Override
+    public int responseSize(StrongPullupDuration spd) {
+        return 1;
+    }
+
 }

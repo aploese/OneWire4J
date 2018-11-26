@@ -286,7 +286,8 @@ public class DS2480BAdapter implements OneWireAdapter {
 		encoder.encode(request);
                 encoder.writeTo(serialPort);
 
-		decoder.decode(serialPort, request);
+                decoder.read(serialPort, request);
+		decoder.decode(request);
 		return request.response;
 	}
 
@@ -314,7 +315,9 @@ public class DS2480BAdapter implements OneWireAdapter {
                 encoder.writeTo(serialPort);
                 
 		for (OneWireRequest<?> request : requests) {
-			decoder.decode(serialPort, request);
+//TODO accumulated read but spud ... border Configuration(Read|Write)Request
+                    decoder.read(serialPort, request);
+                    decoder.decode(request);
 		}
 	}
 

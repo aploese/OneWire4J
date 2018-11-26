@@ -27,10 +27,17 @@
  */
 package de.ibapl.onewire4j.request.data;
 
+import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
+
 /**
  *
  * @author Arne Plöse
  */
 public class SearchCommand extends DataRequest<Boolean> {
+
+    @Override
+    public int responseSize(StrongPullupDuration spd) {
+        return 1;
+    }
 
 }

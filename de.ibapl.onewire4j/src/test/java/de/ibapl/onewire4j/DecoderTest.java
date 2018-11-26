@@ -115,27 +115,32 @@ public class DecoderTest {
         OneWireRequest<?> request = ConfigurationWriteRequest.of(PullDownSlewRateParam.PDSRC_1_37);
         
         request.waitForResponse();
-        decoder.decode(buff, request);
+        decoder.read(buff, request);
+        decoder.decode(request);
         assertEquals(PullDownSlewRateParam.PDSRC_1_37, request.response);
         request = ConfigurationWriteRequest.of(Write1LowTime.W1LT_10);
         
         request.waitForResponse();
-        decoder.decode(buff, request);
+        decoder.read(buff, request);
+        decoder.decode(request);
         assertEquals(Write1LowTime.W1LT_10, request.response);
         request = ConfigurationWriteRequest.of(DataSampleOffsetAndWrite0RecoveryTime.DSO_AND_W0RT_8);
         
         request.waitForResponse();
-        decoder.decode(buff, request);
+        decoder.read(buff, request);
+        decoder.decode(request);
         assertEquals(DataSampleOffsetAndWrite0RecoveryTime.DSO_AND_W0RT_8, request.response);
         request = ConfigurationReadRequest.of(CommandType.RBR);
         
         request.waitForResponse();
-        decoder.decode(buff, request);
+        decoder.read(buff, request);
+        decoder.decode(request);
         assertEquals(SerialPortSpeed.SPS_9_6, request.response);
         SingleBitRequest singleBitRequest = new SingleBitRequest(OneWireSpeed.STANDARD, DataToSend.WRITE_0_BIT, false);
 
         singleBitRequest.waitForResponse();
-        decoder.decode(buff, singleBitRequest);
+        decoder.read(buff, request);
+        decoder.decode(singleBitRequest);
         assertEquals(OneWireSpeed.STANDARD, singleBitRequest.response.speed);
         assertEquals(BitResult._1_READ_BACK, singleBitRequest.response.bitResult);
         assertEquals(DataToSend.WRITE_1_OR_READ_BIT, singleBitRequest.response.dataToSend);

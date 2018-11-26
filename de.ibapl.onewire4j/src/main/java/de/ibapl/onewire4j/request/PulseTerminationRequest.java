@@ -28,11 +28,17 @@
 package de.ibapl.onewire4j.request;
 
 import de.ibapl.onewire4j.request.communication.CommunicationRequest;
+import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
 
 /**
  *
  * @author Arne Plöse
  */
 public class PulseTerminationRequest extends CommunicationRequest<Byte> {
+
+    @Override
+    public int responseSize(StrongPullupDuration spd) {
+        return 1;
+    }
 
 }

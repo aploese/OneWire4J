@@ -29,7 +29,6 @@ package de.ibapl.onewire4j;
 
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
 
 import de.ibapl.onewire4j.request.CommandRequest;
 import de.ibapl.onewire4j.request.OneWireRequest;
@@ -63,6 +62,7 @@ import de.ibapl.onewire4j.request.data.DataRequest;
 import de.ibapl.onewire4j.request.data.DataRequestWithDeviceCommand;
 import de.ibapl.onewire4j.request.data.RawDataRequest;
 import de.ibapl.onewire4j.request.data.SearchCommand;
+import de.ibapl.spsw.api.TimeoutIOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 
@@ -85,38 +85,28 @@ public class Decoder {
         this.buff = buff;
     }
 
-    public <R> void decode(ReadableByteChannel channel, OneWireRequest<R> request) throws IOException {
+    public <R> void decode(OneWireRequest<R> request) throws IOException {
         request.throwIfNot(RequestState.WAIT_FOR_RESPONSE);
 
         if (request instanceof CommandRequest) {
             if (request instanceof ConfigurationRequest) {
                 if (request instanceof ConfigurationReadRequest) {
-                    read(channel, 1);
                     decodeConfigurationReadResponse((ConfigurationReadRequest<R>) request);
                 } else if (request instanceof ConfigurationWriteRequest) {
-                    read(channel, 1);
                     decodeConfigurationWriteResponse((ConfigurationWriteRequest<R>) request);
                 } else {
                     throw new IllegalArgumentException("Unknown subtype of ConfigurationRequest: " + request.getClass());
                 }
             } else if (request instanceof CommunicationRequest) {
                 if (request instanceof SingleBitRequest) {
-                    read(channel, 1);
                     decodeSingleBitResponse((SingleBitRequest) request);
                 } else if (request instanceof SearchAcceleratorCommand) {
                     request.success();
                 } else if (request instanceof ResetDeviceRequest) {
-                    read(channel, 1);
                     decodeResetDeviceResponse((ResetDeviceRequest) request);
                 } else if (request instanceof PulseRequest) {
-                    if (spud == StrongPullupDuration.SPUD_POSITIVE_INFINITY) {
                         decodePulseResponse((PulseRequest) request);
-                    } else {
-                        read(channel, 1);
-                        decodePulseResponse((PulseRequest) request, buff.get());
-                    }
                 } else if (request instanceof PulseTerminationRequest) {
-                    read(channel, 1);
                     decodePulseTerminationResponse((PulseTerminationRequest) request);
                 } else {
                     throw new IllegalArgumentException("Unknown subtype of CommunicationRequest: " + request.getClass());
@@ -126,12 +116,11 @@ public class Decoder {
             }
         } else if (request instanceof DataRequest) {
             if (request instanceof SearchCommand) {
-                read(channel, 1);
                 decodeSearchCommand((SearchCommand) request);
             } else if (request instanceof RawDataRequest) {
-                decodeRawDataRequest(channel, (RawDataRequest) request);
+                decodeRawDataRequest((RawDataRequest) request);
             } else if (request instanceof DataRequestWithDeviceCommand) {
-                decodeDataRequestWithDeviceCommand(channel, (DataRequestWithDeviceCommand) request);
+                decodeDataRequestWithDeviceCommand((DataRequestWithDeviceCommand) request);
             } else {
                 throw new IllegalArgumentException("NOT IMPLEMENTED: " + request.getClass());
             }
@@ -146,60 +135,36 @@ public class Decoder {
         request.success();
     }
 
-    private void decodeRawDataRequest(ReadableByteChannel channel, RawDataRequest request) throws IOException {
-        //TODO implement
-        final int len = request.response.length;
-        ByteBuffer b = ByteBuffer.allocateDirect(len);
-        int readed = 0;
-        while (readed < len) {
-            final int count = channel.read(b);
-            if (count < 0) {
-                throw new EOFException();
-            }
-            readed += count;
+    private void decodeRawDataRequest(RawDataRequest request) throws IOException {
+        if (buff.remaining() < request.response.length) {
+            throw new RuntimeException("ERR");
         }
-        b.flip();
-        b.get(request.response);
+        buff.get(request.response);
         request.success();
     }
 
-    private void decodeDataRequestWithDeviceCommand(ReadableByteChannel channel, DataRequestWithDeviceCommand request) throws IOException {
-        read(channel, 1);
+    private void decodeDataRequestWithDeviceCommand(DataRequestWithDeviceCommand request) throws IOException {
         if (request.command != buff.get()) {
             throw new IllegalArgumentException("Wrong command");
         }
-        final int len = request.response.length;
-        ByteBuffer b = ByteBuffer.allocateDirect(len);
-        int readed = 0;
-        while (readed < len) {
-            final int count = channel.read(b);
-            if (count < 0) {
-                throw new EOFException();
-            }
-            readed += count;
-        }
-        b.flip();
-        b.get(request.response);
+        buff.get(request.response);
         request.success();
     }
 
     private void decodePulseResponse(PulseRequest request) {
         final PulseResponse response = new PulseResponse();
-        response.strongPullupDuration = spud;
-        request.response = response;
-        request.success();
-    }
+        if (spud != StrongPullupDuration.SPUD_POSITIVE_INFINITY) {
+            final byte b = buff.get();
+            if ((b & 0b111_0_11_00) != 0b111_0_11_00) {
+                throw new RuntimeException("Wrong Pulse Response expected 0b111_p_11_xx but got: 0b" + Integer.toBinaryString(b & 0xff));
+            }
+            if (((b & 0b111_1_11_00) != 0b111_1_11_00)) {
+                response.pulsePower = PulsePower.PROGRAMMING_PULSE;
+            } else {
+                response.pulsePower = PulsePower.STRONG_PULLUP;
+            }
+        }
 
-    private void decodePulseResponse(PulseRequest request, int b) {
-        final PulseResponse response = new PulseResponse();
-        if ((b & 0b111_0_11_00) != 0b111_0_11_00) {
-            throw new RuntimeException("Wrong Pulse Response expected 0b111_p_11_xx but got: 0b" + Integer.toBinaryString(b & 0xff));
-        }
-        if (((b & 0b111_1_11_00) != 0b111_1_11_00)) {
-            response.pulsePower = PulsePower.PROGRAMMING_PULSE;
-        } else {
-            response.pulsePower = PulsePower.STRONG_PULLUP;
-        }
         response.strongPullupDuration = spud;
         request.response = response;
         request.success();
@@ -561,12 +526,24 @@ public class Decoder {
     void read(ReadableByteChannel channel, int len) throws IOException {
         buff.position(0);
         buff.limit(len);
+        while (buff.hasRemaining()) {
+            channel.read(buff);
+        }
         channel.read(buff);
+        buff.flip();
+    }
+
+    void read(ReadableByteChannel channel, OneWireRequest<?> request) throws IOException {
+        buff.position(0);
+        buff.limit(request.responseSize(spud));
+        while (buff.hasRemaining()) {
+            channel.read(buff);
+        }
         buff.flip();
     }
 
     int capacity() {
         return buff.capacity();
     }
-
+    
 }

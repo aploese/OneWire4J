@@ -27,6 +27,7 @@
  */
 package de.ibapl.onewire4j.request.data;
 
+import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
 import java.util.Arrays;
 
 /**
@@ -34,28 +35,34 @@ import java.util.Arrays;
  * @author Arne Plöse
  */
 public class DataRequestWithDeviceCommand extends DataRequest<byte[]> {
-	
-	/**
-	 * 
-	 * @param command the command is send first followed by the data
-	 * @param size the remaining size for the data
-	 * @param filler the byte with to fill the data section
-	 */
-	public DataRequestWithDeviceCommand(byte command, int size, byte filler) {
-		this(command, new byte[size], new byte[size]);
-		Arrays.fill(requestData, filler);
-	}
 
-	public DataRequestWithDeviceCommand(byte command, byte[] requestData) {
-		this(command, requestData, new byte[requestData.length]);
-	}
+    /**
+     *
+     * @param command the command is send first followed by the data
+     * @param size the remaining size for the data
+     * @param filler the byte with to fill the data section
+     */
+    public DataRequestWithDeviceCommand(byte command, int size, byte filler) {
+        this(command, new byte[size], new byte[size]);
+        Arrays.fill(requestData, filler);
+    }
 
-	public DataRequestWithDeviceCommand(byte command, byte[] requestData, byte[] responseArray) {
-		this.requestData = requestData;
-		this.response = responseArray;
-		this.command = command;
-	}
-	
-	public final byte[] requestData;
-	public final byte command;
+    public DataRequestWithDeviceCommand(byte command, byte[] requestData) {
+        this(command, requestData, new byte[requestData.length]);
+    }
+
+    public DataRequestWithDeviceCommand(byte command, byte[] requestData, byte[] responseArray) {
+        this.requestData = requestData;
+        this.response = responseArray;
+        this.command = command;
+    }
+
+    public final byte[] requestData;
+    public final byte command;
+
+    @Override
+    public int responseSize(StrongPullupDuration spd) {
+        return 1 + response.length;
+    }
+
 }

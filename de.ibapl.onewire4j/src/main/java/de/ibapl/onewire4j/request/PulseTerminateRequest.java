@@ -33,6 +33,6 @@ import de.ibapl.onewire4j.request.communication.PulseResponse;
  *
  * @author Arne Plöse
  */
-public class PulseTerminateRequest extends CommandRequest<PulseResponse>{
+public abstract class PulseTerminateRequest extends CommandRequest<PulseResponse>{
 
 }

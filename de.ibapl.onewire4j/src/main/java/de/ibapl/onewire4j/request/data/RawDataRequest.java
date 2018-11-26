@@ -27,6 +27,7 @@
  */
 package de.ibapl.onewire4j.request.data;
 
+import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
 import java.util.Arrays;
 
 /**
@@ -34,29 +35,34 @@ import java.util.Arrays;
  * @author Arne Plöse
  */
 public class RawDataRequest extends DataRequest<byte[]> {
-	
-	public RawDataRequest(int size, int filler) {
-		this(size);
-		Arrays.fill(requestData, (byte) filler);
-	}
 
-	/**
-	 * 
-	 * @param size the size of the buffer
-	 */
-	public RawDataRequest(int size) {
-		this(new byte[size]);
-	}
+    public RawDataRequest(int size, int filler) {
+        this(size);
+        Arrays.fill(requestData, (byte) filler);
+    }
 
-	public RawDataRequest(byte[] requestData, byte[] responseArray) {
-		this.requestData = requestData;
-		this.response = responseArray;
-	}
+    /**
+     *
+     * @param size the size of the buffer
+     */
+    public RawDataRequest(int size) {
+        this(new byte[size]);
+    }
 
-	public RawDataRequest(byte[] requestData) {
-		this(requestData, new byte[requestData.length]);
-	}
+    public RawDataRequest(byte[] requestData, byte[] responseArray) {
+        this.requestData = requestData;
+        this.response = responseArray;
+    }
 
-	public final byte[] requestData;
+    public RawDataRequest(byte[] requestData) {
+        this(requestData, new byte[requestData.length]);
+    }
+
+    public final byte[] requestData;
+
+    @Override
+    public int responseSize(StrongPullupDuration spd) {
+        return response.length;
+    }
 
 }

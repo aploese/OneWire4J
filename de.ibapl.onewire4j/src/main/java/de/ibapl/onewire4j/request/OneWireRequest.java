@@ -29,6 +29,7 @@ package de.ibapl.onewire4j.request;
 
 import de.ibapl.onewire4j.Decoder;
 import de.ibapl.onewire4j.Encoder;
+import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
 
 /**
  * A 1-wire command request with response.
@@ -37,7 +38,7 @@ import de.ibapl.onewire4j.Encoder;
  * 
  * @param <R> the type of the response.
  */
-public class OneWireRequest<R> {
+public abstract class OneWireRequest<R> {
 	/**
 	 * The internal state of this request.
 	 * 
@@ -94,4 +95,6 @@ public class OneWireRequest<R> {
 	public void waitForResponse() {
     	requestState = RequestState.WAIT_FOR_RESPONSE;
 	}
+        
+        public abstract int responseSize(StrongPullupDuration spd); 
 }

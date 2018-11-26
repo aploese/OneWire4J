@@ -27,16 +27,25 @@
  */
 package de.ibapl.onewire4j.request.communication;
 
+import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
+
 /**
  *
  * @author Arne Plöse
  */
 public class ResetDeviceRequest extends CommunicationRequest<ResetDeviceResponse> {
-	public OneWireSpeed speed;
 
-	public static ResetDeviceRequest of(OneWireSpeed speed) {
-		final ResetDeviceRequest result = new ResetDeviceRequest();
-		result.speed = speed;
-		return result;
-	} 
+    public OneWireSpeed speed;
+
+    public static ResetDeviceRequest of(OneWireSpeed speed) {
+        final ResetDeviceRequest result = new ResetDeviceRequest();
+        result.speed = speed;
+        return result;
+    }
+
+    @Override
+    public int responseSize(StrongPullupDuration spd) {
+        return 1;
+    }
+
 }
