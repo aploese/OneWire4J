@@ -27,11 +27,7 @@
  */
 package de.ibapl.onewire4j;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.function.Consumer;
 import java.util.function.LongConsumer;
 import java.util.logging.Level;
@@ -72,6 +68,7 @@ import de.ibapl.spsw.api.Parity;
 import de.ibapl.spsw.api.SerialPortSocket;
 import de.ibapl.spsw.api.Speed;
 import de.ibapl.spsw.api.StopBits;
+import java.nio.ByteBuffer;
 
 /**
  * This class provides an implementation used for accessing the DS2480B.
@@ -88,8 +85,6 @@ public class DS2480BAdapter implements OneWireAdapter {
 
 	private Decoder decoder;
 	private Encoder encoder;
-	private InputStream is;
-	private OutputStream os;
 	private final SerialPortSocket serialPort;
 	private OneWireSpeed speedFromBaudrate = OneWireSpeed.FLEX;
 	private State state = State.UNKNOWN;
@@ -125,8 +120,9 @@ public class DS2480BAdapter implements OneWireAdapter {
 		}
 
 		readGarbage();
-		os.write(Encoder.RESET_CMD);
-		os.flush();
+		encoder.put(Encoder.RESET_CMD);
+                encoder.writeTo(serialPort);
+                
 		try {
 			Thread.sleep(2);
 		} catch (InterruptedException e) {
@@ -152,15 +148,11 @@ public class DS2480BAdapter implements OneWireAdapter {
 		try {
 			serialPort.open(Speed._9600_BPS, DataBits.DB_8, StopBits.SB_1, Parity.NONE, FlowControl.getFC_NONE());
 			serialPort.setTimeouts(100, 1000, 1000);
-			is = new BufferedInputStream(serialPort.getInputStream(), 64);
-			os = new BufferedOutputStream(serialPort.getOutputStream(), 64);
-			encoder = new Encoder(os);
-			decoder = new Decoder(is);
+			encoder = new Encoder(ByteBuffer.allocateDirect(64));
+			decoder = new Decoder(ByteBuffer.allocateDirect(64));
 			init();
 		} catch (Exception e) {
 			//Clean up
-			is = null;
-			os = null;
 			encoder = null;
 			decoder = null;
 			if (serialPort.isOpen()) {
@@ -171,8 +163,8 @@ public class DS2480BAdapter implements OneWireAdapter {
 	}
 
 	protected void readGarbage() throws IOException {
-		if (is.available() > 0) {
-			is.read(new byte[is.available()]);
+		while (serialPort.getInBufferBytesCount() > 0) {
+			decoder.read(serialPort, Math.min(serialPort.getInBufferBytesCount(), decoder.capacity()));
 		}
 	}
 
@@ -292,9 +284,9 @@ public class DS2480BAdapter implements OneWireAdapter {
 			throw new IllegalStateException("Can't hande adapter state: " + state);
 		}
 		encoder.encode(request);
-		os.flush();
+                encoder.writeTo(serialPort);
 
-		decoder.decode(request);
+		decoder.decode(serialPort, request);
 		return request.response;
 	}
 
@@ -319,10 +311,10 @@ public class DS2480BAdapter implements OneWireAdapter {
 			encoder.encode(request);
 		}
 
-		os.flush();
-
+                encoder.writeTo(serialPort);
+                
 		for (OneWireRequest<?> request : requests) {
-			decoder.decode(request);
+			decoder.decode(serialPort, request);
 		}
 	}
 
@@ -387,10 +379,10 @@ public class DS2480BAdapter implements OneWireAdapter {
 		}
 		switch (state) {
 		case COMMAND:
-			os.write(Encoder.SWITCH_TO_COMMAND_MODE_BYTE);
+			encoder.put(Encoder.SWITCH_TO_COMMAND_MODE_BYTE);
 			break;
 		case DATA:
-			os.write(Encoder.SWITCH_TO_DATA_MODE_BYTE);
+			encoder.put(Encoder.SWITCH_TO_DATA_MODE_BYTE);
 			break;
 		default:
 			break;

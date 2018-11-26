@@ -4,5 +4,5 @@ Export-Package: \
  de.ibapl.onewire4j.request,\
  de.ibapl.onewire4j.request.communication,\
  de.ibapl.onewire4j.request.configuration,\
- de.ibapl.onewire4j.request.data;version,\
+ de.ibapl.onewire4j.request.data,\
  de.ibapl.onewire4j.utils

@@ -50,6 +50,8 @@ import de.ibapl.onewire4j.request.configuration.DataSampleOffsetAndWrite0Recover
 import de.ibapl.onewire4j.request.configuration.PullDownSlewRateParam;
 import de.ibapl.onewire4j.request.configuration.SerialPortSpeed;
 import de.ibapl.onewire4j.request.configuration.Write1LowTime;
+import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
 
 /**
  *
@@ -75,6 +77,32 @@ public class DecoderTest {
     @After
     public void tearDown() {
     }
+    
+    class Buff implements ReadableByteChannel {
+        
+        private byte[] buff = new byte[] {(byte)0x16,(byte)0x44, (byte)0x5A, (byte)0x00, (byte)0x93 };
+        private int pos = 0;
+        
+        @Override
+        public int read(ByteBuffer dst) throws IOException {
+            int oldPos = dst.position();
+            while (dst.hasRemaining()) {
+                dst.put(buff[pos++]);
+            }
+            return dst.position() - oldPos;
+        }
+
+        @Override
+        public boolean isOpen() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void close() throws IOException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+        
+    }
 
     /**
      * Test of decode method, of class Decoder.
@@ -82,31 +110,32 @@ public class DecoderTest {
     @Test
     public void testDecodeInitDS280B() throws IOException {
         System.out.println("decode");
-        Decoder decoder = new Decoder(new ByteArrayInputStream(new byte[] {(byte)0x16,(byte)0x44, (byte)0x5A, (byte)0x00, (byte)0x93 }));
+        Buff buff = new Buff();
+        Decoder decoder = new Decoder(ByteBuffer.allocate(64)); 
         OneWireRequest<?> request = ConfigurationWriteRequest.of(PullDownSlewRateParam.PDSRC_1_37);
         
         request.waitForResponse();
-        decoder.decode(request);
+        decoder.decode(buff, request);
         assertEquals(PullDownSlewRateParam.PDSRC_1_37, request.response);
         request = ConfigurationWriteRequest.of(Write1LowTime.W1LT_10);
         
         request.waitForResponse();
-        decoder.decode(request);
+        decoder.decode(buff, request);
         assertEquals(Write1LowTime.W1LT_10, request.response);
         request = ConfigurationWriteRequest.of(DataSampleOffsetAndWrite0RecoveryTime.DSO_AND_W0RT_8);
         
         request.waitForResponse();
-        decoder.decode(request);
+        decoder.decode(buff, request);
         assertEquals(DataSampleOffsetAndWrite0RecoveryTime.DSO_AND_W0RT_8, request.response);
         request = ConfigurationReadRequest.of(CommandType.RBR);
         
         request.waitForResponse();
-        decoder.decode(request);
+        decoder.decode(buff, request);
         assertEquals(SerialPortSpeed.SPS_9_6, request.response);
         SingleBitRequest singleBitRequest = new SingleBitRequest(OneWireSpeed.STANDARD, DataToSend.WRITE_0_BIT, false);
 
         singleBitRequest.waitForResponse();
-        decoder.decode(singleBitRequest);
+        decoder.decode(buff, singleBitRequest);
         assertEquals(OneWireSpeed.STANDARD, singleBitRequest.response.speed);
         assertEquals(BitResult._1_READ_BACK, singleBitRequest.response.bitResult);
         assertEquals(DataToSend.WRITE_1_OR_READ_BIT, singleBitRequest.response.dataToSend);

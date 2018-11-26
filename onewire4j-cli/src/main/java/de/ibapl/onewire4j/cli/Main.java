@@ -54,14 +54,14 @@ public class Main {
 	 *            the command line arguments
 	 */
 	public static void main(String[] args) throws Exception {
-		try (FileOutputStream log = new FileOutputStream("/tmp/owapi-ng.log")) {
+		try (FileOutputStream log = new FileOutputStream("/tmp/owapi-ng.csv")) {
 			ServiceLoader<SerialPortSocketFactory> spsFactory = ServiceLoader.load(SerialPortSocketFactory.class);
 			SerialPortSocketFactory serialPortSocketFactory = spsFactory.iterator().next();
 			System.out.println("serialPortSocketFactory " + serialPortSocketFactory.getClass().getName());
 
 			final SerialPortSocket port = serialPortSocketFactory.createSerialPortSocket(args[0]);
 			LoggingSerialPortSocket lport = LoggingSerialPortSocket.wrapWithHexOutputStream(port,
-					new FileOutputStream("/tmp/owapi-ng.csv"), false, TimeStampLogging.UTC);
+					new FileOutputStream("/tmp/owapi-ng.log"), false, TimeStampLogging.UTC);
 
 			try (OneWireAdapter adapter = new AdapterFactory().open(lport)) {
 				final boolean parasitePowerNeeded = TemperatureContainer.isParasitePower(adapter);

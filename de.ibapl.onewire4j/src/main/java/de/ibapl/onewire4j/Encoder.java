@@ -55,6 +55,10 @@ import de.ibapl.onewire4j.request.data.DataRequest;
 import de.ibapl.onewire4j.request.data.DataRequestWithDeviceCommand;
 import de.ibapl.onewire4j.request.data.RawDataRequest;
 import de.ibapl.onewire4j.request.data.SearchCommand;
+import de.ibapl.spsw.api.SerialPortSocket;
+import java.nio.ByteBuffer;
+import java.nio.channels.ByteChannel;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * Encodes a OneWireRequest to a byte or byte[] and write that data to the
@@ -72,7 +76,7 @@ public class Encoder {
 	public static final byte SWITCH_TO_COMMAND_MODE_BYTE = (byte) 0xe3;
 	public static final byte SWITCH_TO_DATA_MODE_BYTE = (byte) 0xe1;
 
-	private final OutputStream os;
+	final ByteBuffer buff;
 
 	/**
 	 * Create a new instance and set the {@linkplain OutputStream}.
@@ -80,8 +84,8 @@ public class Encoder {
 	 * @param os
 	 *            the OutputStream to write to.
 	 */
-	public Encoder(OutputStream os) {
-		this.os = os;
+	public Encoder(ByteBuffer buff) {
+            this.buff = buff;
 	}
 
 	/**
@@ -99,23 +103,23 @@ public class Encoder {
 		if (request instanceof CommandRequest) {
 			if (request instanceof ConfigurationRequest) {
 				if (request instanceof ConfigurationReadRequest) {
-					os.write(encodeConfigurationReadRequest((ConfigurationReadRequest<R>) request));
+					buff.put(encodeConfigurationReadRequest((ConfigurationReadRequest<R>) request));
 				} else if (request instanceof ConfigurationWriteRequest) {
-					os.write(encodeConfigurationWriteRequest((ConfigurationWriteRequest<R>) request));
+					buff.put(encodeConfigurationWriteRequest((ConfigurationWriteRequest<R>) request));
 				} else {
 					throw new RuntimeException("Unknown subtype of ConfigurationRequest: " + request.getClass());
 				}
 			} else if (request instanceof CommunicationRequest) {
 				if (request instanceof SingleBitRequest) {
-					os.write(encodeSingleBitSendCommand((SingleBitRequest) request));
+					buff.put(encodeSingleBitSendCommand((SingleBitRequest) request));
 				} else if (request instanceof SearchAcceleratorCommand) {
-					os.write(encodeSearchAcceleratorCommand((SearchAcceleratorCommand) request));
+					buff.put(encodeSearchAcceleratorCommand((SearchAcceleratorCommand) request));
 				} else if (request instanceof ResetDeviceRequest) {
-					os.write(encodeResetDevice((ResetDeviceRequest) request));
+					buff.put(encodeResetDevice((ResetDeviceRequest) request));
 				} else if (request instanceof PulseRequest) {
-					os.write(encodePulseRequest((PulseRequest) request));
+					buff.put(encodePulseRequest((PulseRequest) request));
 				} else if (request instanceof PulseTerminationRequest) {
-					os.write(0xF1);
+					buff.put((byte)0xF1);
 				} else {
 					throw new RuntimeException("Unknown subtype of CommunicationRequest: " + request.getClass());
 				}
@@ -124,12 +128,12 @@ public class Encoder {
 			}
 		} else if (request instanceof DataRequest) {
 			if (request instanceof SearchCommand) {
-				os.write(0xf0);
+				buff.put((byte)0xf0);
 			} else if (request instanceof RawDataRequest) {
 				writeDataBytes(((RawDataRequest) request).requestData);
 			} else if (request instanceof DataRequestWithDeviceCommand) {
 				final DataRequestWithDeviceCommand r = (DataRequestWithDeviceCommand) request;
-				os.write(r.command);
+				buff.put(r.command);
 				writeDataBytes(r.requestData);
 			} else {
 				throw new RuntimeException("NOT IMPLEMENTED: " + request.getClass());
@@ -140,7 +144,7 @@ public class Encoder {
 		request.waitForResponse();
 	}
 
-	private int encodeConfigurationReadRequest(ConfigurationReadRequest<?> configurationCommand) throws IOException {
+	private byte encodeConfigurationReadRequest(ConfigurationReadRequest<?> configurationCommand) throws IOException {
 		switch (configurationCommand.commandType) {
 		case PDSRC:
 			return 0b0_000_001_1;
@@ -162,7 +166,7 @@ public class Encoder {
 	}
 
 	@SuppressWarnings("unchecked")
-	private int encodeConfigurationWriteRequest(ConfigurationWriteRequest<?> configurationCommand) throws IOException {
+	private byte encodeConfigurationWriteRequest(ConfigurationWriteRequest<?> configurationCommand) throws IOException {
 		switch (configurationCommand.commandType) {
 		case PDSRC:
 			switch (((ConfigurationWriteRequest<PullDownSlewRateParam>) configurationCommand).propertyValue) {
@@ -315,8 +319,8 @@ public class Encoder {
 		}
 	}
 
-	private int encodePulseRequest(PulseRequest request) {
-		int data = 0b111_0_11_0_1;
+	private byte encodePulseRequest(PulseRequest request) {
+		byte data = (byte)0b111_0_11_0_1;
 		switch (request.pulsePower) {
 		case PROGRAMMING_PULSE:
 			data |= 0b000_1_00_0_0;
@@ -338,33 +342,33 @@ public class Encoder {
 		return data;
 	}
 
-	private int encodeResetDevice(ResetDeviceRequest request) {
-		return encodeSpeed(request.speed) | 0b1100_00_01;
+	private byte encodeResetDevice(ResetDeviceRequest request) {
+		return (byte)(encodeSpeed(request.speed) | 0b1100_00_01);
 	}
 
-	private int encodeSearchAcceleratorCommand(SearchAcceleratorCommand request) {
+	private byte encodeSearchAcceleratorCommand(SearchAcceleratorCommand request) {
 		switch (request.searchAccelerator) {
 		case ON:
-			return encodeSpeed(request.speed) | 0b1011_00_01;
+			return (byte)(encodeSpeed(request.speed) | (byte)0b1011_00_01);
 		case OFF:
-			return encodeSpeed(request.speed) | 0b1010_00_01;
+			return (byte)(encodeSpeed(request.speed) | 0b1010_00_01);
 		default:
 			throw new RuntimeException("Unknown search accelerator: " + request.searchAccelerator);
 		}
 	}
 
-	private int encodeSingleBitSendCommand(SingleBitRequest request) throws IOException {
+	private byte encodeSingleBitSendCommand(SingleBitRequest request) throws IOException {
 		switch (request.dataToSend) {
 		case WRITE_0_BIT:
-			return encodeSpeed(request.speed) | (request.armPowerDelivery ? 0b100_0_00_11 : 0b100_0_00_01);
+			return (byte)(encodeSpeed(request.speed) | (request.armPowerDelivery ? 0b100_0_00_11 : 0b100_0_00_01));
 		case WRITE_1_OR_READ_BIT:
-			return encodeSpeed(request.speed) | (request.armPowerDelivery ? 0b100_1_00_11 : 0b100_1_00_01);
+			return (byte)(encodeSpeed(request.speed) | (request.armPowerDelivery ? 0b100_1_00_11 : 0b100_1_00_01));
 		default:
 			throw new RuntimeException("Unknown dataToSend: " + request.dataToSend);
 		}
 	}
 
-	private int encodeSpeed(OneWireSpeed speed) {
+	private byte encodeSpeed(OneWireSpeed speed) {
 		switch (speed) {
 		case STANDARD:
 			return 0b0000_00_00;
@@ -383,12 +387,22 @@ public class Encoder {
 		int lastWriteMark = 0;
 		for (int i = 0; i < requestData.length; i++) {
 			if (requestData[i] == SWITCH_TO_COMMAND_MODE_BYTE) {
-				os.write(requestData, lastWriteMark, i - lastWriteMark);
-				os.write(requestData[i]);
+				buff.put(requestData, lastWriteMark, i - lastWriteMark);
+				buff.put(requestData[i]);
 				lastWriteMark = i;
 			}
 		}
-		os.write(requestData, lastWriteMark, requestData.length - lastWriteMark);
+		buff.put(requestData, lastWriteMark, requestData.length - lastWriteMark);
 	}
+
+    void put(byte b) {
+        buff.put(b);
+    }
+
+    void writeTo(WritableByteChannel channel) throws IOException {
+        buff.flip();
+        channel.write(buff);
+        buff.clear();
+    }
 
 }
