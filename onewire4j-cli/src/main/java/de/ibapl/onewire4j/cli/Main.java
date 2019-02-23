@@ -58,7 +58,9 @@ public class Main {
 			ServiceLoader<SerialPortSocketFactory> spsFactory = ServiceLoader.load(SerialPortSocketFactory.class);
 			SerialPortSocketFactory serialPortSocketFactory = spsFactory.iterator().next();
 			System.out.println("serialPortSocketFactory " + serialPortSocketFactory.getClass().getName());
-
+                        if (args.length == 0) {
+                            throw new IllegalArgumentException("Portname is missing");
+                        }
 			final SerialPortSocket port = serialPortSocketFactory.createSerialPortSocket(args[0]);
 			LoggingSerialPortSocket lport = LoggingSerialPortSocket.wrapWithHexOutputStream(port,
 					new FileOutputStream("/tmp/owapi-ng.log"), false, TimeStampLogging.UTC);
