@@ -27,7 +27,6 @@
  */
 package de.ibapl.onewire4j;
 
-import java.io.EOFException;
 import java.io.IOException;
 
 import de.ibapl.onewire4j.request.CommandRequest;
@@ -62,7 +61,6 @@ import de.ibapl.onewire4j.request.data.DataRequest;
 import de.ibapl.onewire4j.request.data.DataRequestWithDeviceCommand;
 import de.ibapl.onewire4j.request.data.RawDataRequest;
 import de.ibapl.onewire4j.request.data.SearchCommand;
-import de.ibapl.spsw.api.TimeoutIOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 
@@ -526,9 +524,6 @@ public class Decoder {
     void read(ReadableByteChannel channel, int len) throws IOException {
         buff.position(0);
         buff.limit(len);
-        while (buff.hasRemaining()) {
-            channel.read(buff);
-        }
         channel.read(buff);
         buff.flip();
     }
@@ -536,9 +531,7 @@ public class Decoder {
     void read(ReadableByteChannel channel, OneWireRequest<?> request) throws IOException {
         buff.position(0);
         buff.limit(request.responseSize(spud));
-        while (buff.hasRemaining()) {
-            channel.read(buff);
-        }
+        channel.read(buff);
         buff.flip();
     }
 
