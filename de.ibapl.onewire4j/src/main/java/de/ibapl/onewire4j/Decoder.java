@@ -61,14 +61,18 @@ import de.ibapl.onewire4j.request.data.DataRequest;
 import de.ibapl.onewire4j.request.data.DataRequestWithDeviceCommand;
 import de.ibapl.onewire4j.request.data.RawDataRequest;
 import de.ibapl.onewire4j.request.data.SearchCommand;
+import de.ibapl.spsw.api.TimeoutIOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Arne Plöse
  */
 public class Decoder {
+
+    private final static Logger LOG = Logger.getLogger(Decoder.class.getCanonicalName());
 
     // This is needed to determine if we must wait or not for
     // StrongPullupDuration.SPUD_POSITIVE_INFINITE
@@ -103,7 +107,7 @@ public class Decoder {
                 } else if (request instanceof ResetDeviceRequest) {
                     decodeResetDeviceResponse((ResetDeviceRequest) request);
                 } else if (request instanceof PulseRequest) {
-                        decodePulseResponse((PulseRequest) request);
+                    decodePulseResponse((PulseRequest) request);
                 } else if (request instanceof PulseTerminationRequest) {
                     decodePulseTerminationResponse((PulseTerminationRequest) request);
                 } else {
@@ -531,12 +535,17 @@ public class Decoder {
     void read(ReadableByteChannel channel, OneWireRequest<?> request) throws IOException {
         buff.position(0);
         buff.limit(request.responseSize(spud));
-        channel.read(buff);
+        try {
+            channel.read(buff);
+        } catch (TimeoutIOException tioe) {
+            LOG.severe("Timeout during read response of: " + request + " expected length: " + request.responseSize(spud));
+            throw tioe;
+        }
         buff.flip();
     }
 
     int capacity() {
         return buff.capacity();
     }
-    
+
 }

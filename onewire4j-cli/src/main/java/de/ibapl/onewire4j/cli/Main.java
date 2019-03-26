@@ -65,7 +65,7 @@ public class Main {
 			LoggingSerialPortSocket lport = LoggingSerialPortSocket.wrapWithHexOutputStream(port,
 					new FileOutputStream("/tmp/owapi-ng.log"), false, TimeStampLogging.UTC);
 
-			try (OneWireAdapter adapter = new AdapterFactory().open(lport)) {
+			try (OneWireAdapter adapter = new AdapterFactory().open(lport, 1)) {
 				final boolean parasitePowerNeeded = TemperatureContainer.isParasitePower(adapter);
 				System.err.println("Some device uses parasite power: " + parasitePowerNeeded);
 

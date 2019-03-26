@@ -33,26 +33,37 @@ import de.ibapl.spsw.api.SerialPortSocket;
 
 /**
  * Factory to choose a implementation {@link OneWireAdapter}.
- * 
+ *
  * @author Arne Plöse
  */
 public class AdapterFactory {
 
-	/**
-	 * Choose and create an adapter, open the port and return the opened adapter.
-	 * 
-	 * 
-	 * @param serialPortSocketFactory
-	 *            the factory to use.
-	 * @param portname
-	 *            the name of the port to open.
-	 * @return the created and opened adapter.
-	 * @throws IOException
-	 *             on error.
-	 */
-	public OneWireAdapter open(SerialPortSocket serialPortSocket) throws IOException {
-		final DS2480BAdapter result = new DS2480BAdapter(serialPortSocket);
-		result.open();
-		return result;
-	}
+    /**
+     * Choose and create an adapter, open the port and return the opened
+     * adapter.
+     *
+     *
+     * @param serialPortSocketFactory the factory to use.
+     * @param tries number of tries to make this more fault tolerant.
+     * @param serialPortSocket the serial port to use.
+     * @return the created and opened adapter.
+     * @throws IOException on error.
+     */
+    public OneWireAdapter open(SerialPortSocket serialPortSocket, int tries) throws IOException {
+        final DS2480BAdapter result = new DS2480BAdapter(serialPortSocket);
+        if (tries <= 0) {
+            throw new IllegalArgumentException("Tries must be greater 0");
+        }
+        for (int i = tries; i > 0; i--) {
+            try {
+                result.open();
+                return result;
+            } catch (Throwable t) {
+                if (i == 0) {
+                    throw t;
+                }
+            }
+        }
+        return result;
+    }
 }

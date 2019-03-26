@@ -65,4 +65,20 @@ public class DataRequestWithDeviceCommand extends DataRequest<byte[]> {
         return 1 + response.length;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("DataRequestWithDeviceCommand(command=").append(command);
+        sb.append(", requestState=").append(requestState);
+        sb.append(", requestData=[0x");
+        for (int i = 0; i < requestData.length; i++) {
+            sb.append(String.format("%02x", requestData[i]));
+        }
+        sb.append("], response=[0x");
+        for (int i = 0; i < response.length; i++) {
+            sb.append(String.format("%02x", response[i]));
+        }
+        sb.append("])");
+        return sb.toString();
+    }
 }
