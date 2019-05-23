@@ -14,15 +14,15 @@
 	<packaging>jar</packaging>
 	<name>OneWire4J CLI</name>
 
-	<properties>
-		<license.licenseResolver>${project.baseUri}/../src/license</license.licenseResolver>
-	</properties>
-
 	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-		</dependency>
+			<dependency>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter-api</artifactId>
+			</dependency>
+			<dependency>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter-engine</artifactId>
+			</dependency>
 		<dependency>
 			<groupId>de.ibapl.spsw</groupId>
 			<artifactId>de.ibapl.spsw.api</artifactId>
