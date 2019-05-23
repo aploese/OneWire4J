@@ -3,7 +3,7 @@
 	<parent>
 		<artifactId>onewire4j-project</artifactId>
 		<groupId>de.ibapl.onewire4j</groupId>
-		<version>1.0.0</version>
+		<version>1.0.1-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 

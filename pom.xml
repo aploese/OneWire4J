@@ -4,7 +4,7 @@
 	<groupId>de.ibapl.onewire4j</groupId>
 	<artifactId>onewire4j-project</artifactId>
 	<packaging>pom</packaging>
-	<version>1.0.0</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<name>OneWire4J Project</name>
 	<url>http://www.github.com/aploese/OneWire4J</url>
 	<inceptionYear>2017</inceptionYear>
@@ -61,7 +61,7 @@
 		<url>https://github.com/aploese/OneWire4J</url>
 		<connection>scm:git:https://github.com/aploese/OneWire4J.git</connection>
 		<developerConnection>scm:git:git@github.com:aploese/OneWire4J.git</developerConnection>
-	  <tag>onewire4j-project-1.0.0</tag>
+	  <tag>HEAD</tag>
   </scm>
 
 	<distributionManagement>
