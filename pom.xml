@@ -50,19 +50,10 @@
 		<system>GitHub Issues</system>
 	</issueManagement>
 
-	<!--repositories>
-		<repository>
-			<id>sonatype-nexus-snapshots</id>
-			<name>Sonatype Nexus Snapshots</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-	</repositories-->
+	<!--repositories> <repository> <id>sonatype-nexus-snapshots</id> <name>Sonatype 
+		Nexus Snapshots</name> <url>https://oss.sonatype.org/content/repositories/snapshots</url> 
+		<releases> <enabled>false</enabled> </releases> <snapshots> <enabled>true</enabled> 
+		</snapshots> </repository> </repositories -->
 
 	<modules>
 		<module>de.ibapl.onewire4j</module>
@@ -240,11 +231,11 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-					<configuration>
-						<source>${compile.source}</source>
-						<target>${compile.target}</target>
-						<encoding>${project.build.sourceEncoding}</encoding>
-					</configuration>
+				<configuration>
+					<source>${compile.source}</source>
+					<target>${compile.target}</target>
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>biz.aQute.bnd</groupId>
@@ -320,4 +311,5 @@
 		</profile>
 	</profiles>
 
+	<description>Pure Java lib to access the 1-Wire Network</description>
 </project>
