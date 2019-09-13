@@ -21,58 +21,15 @@
  */
 package de.ibapl.onewire4j.container;
 
-import java.io.IOException;
-
-import de.ibapl.onewire4j.OneWireAdapter;
-
-
 /**
  *
  * @author Arne Plöse
  */
-public abstract class OneWireDevice implements OneWireContainer {
+@DeviceInfo(oneWireName="DS2431", iButtonName="DS1972")
+public class OneWireDevice2d extends OneWireDevice implements MemoryBankContainer {
 
-	private final long address;
-
-	protected OneWireDevice(long address) {
-		this.address = address;
-	}
-
-	/**
-	 * Factory method to create OneWire device from their address.
-	 * 
-	 * @param address the address used to create the device.
-	 * @return
-	 */
-	public static OneWireDevice fromAdress(long address) {
-		switch ((int) address & 0xff) {
-		case 0x01:
-			return new OneWireDevice01(address);
-		case 0x10:
-			return new OneWireDevice10(address);
-		case 0x28:
-			return new OneWireDevice28(address);
-		case 0x2d:
-			return new OneWireDevice2d(address);
-		default:
-			throw new RuntimeException("Cant handle One wire family: " + Integer.toHexString((int) address & 0xff));
-		}
-	}
-
-	
-	//TODO get a readTimeslot???? parasite power
-	public void init(OneWireAdapter adapter) throws IOException {
-	}
-	
-
-	@Override
-	public long getAddress() {
-		return address;
-	}
-	
-	@Override
-	public String getAddressAsString() {
-		return String.format("%08x", address);
+	public OneWireDevice2d(long address) {
+		super(address);
 	}
 
 }

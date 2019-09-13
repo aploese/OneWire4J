@@ -115,7 +115,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 
 		readGarbage();
 		encoder.put(Encoder.RESET_CMD);
-                encoder.writeTo(serialPort);
+        encoder.writeTo(serialPort);
                 
 		try {
 			Thread.sleep(2);
