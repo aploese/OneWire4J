@@ -23,8 +23,13 @@ module de.ibapl.onewire4j {
 
     requires java.logging;
     requires osgi.annotation;
-    requires de.ibapl.spsw.api;
-    
-    
+    requires transitive de.ibapl.spsw.api;
+
     exports de.ibapl.onewire4j;
+    exports de.ibapl.onewire4j.container;
+    exports de.ibapl.onewire4j.request;
+    exports de.ibapl.onewire4j.request.communication;
+    exports de.ibapl.onewire4j.request.configuration;
+    exports de.ibapl.onewire4j.request.data;
+    exports de.ibapl.onewire4j.utils;
 }
