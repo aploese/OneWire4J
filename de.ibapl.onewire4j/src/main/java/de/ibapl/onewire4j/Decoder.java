@@ -140,8 +140,9 @@ public class Decoder {
     }
 
     private void decodeDataRequestWithDeviceCommand(DataRequestWithDeviceCommand request) throws IOException {
-        if (request.command != buff.get()) {
-            throw new IllegalArgumentException("Wrong command");
+        final byte c = buff.get();
+        if (request.command != c) {
+            throw new IllegalArgumentException(String.format("Wrong command: 0x%02x expected: 0x%02x", c, request.command));
         }
         buff.get(request.response);
         request.success();

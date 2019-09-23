@@ -27,8 +27,8 @@ package de.ibapl.onewire4j.request.data;
  */
 public class ReadBytesRequest extends RawDataRequest {
 
-	public ReadBytesRequest(int size) {
-		super(size, ONE_WIRE_READ_BYTE_FILLER);
+	public ReadBytesRequest(int requestDataSize, int readTimeSlots, int responseDataSize) {
+		super(requestDataSize, readTimeSlots, responseDataSize);
 	}
 
 }

@@ -30,26 +30,18 @@ import java.util.Arrays;
  */
 public class RawDataRequest extends DataRequest<byte[]> {
 
-    public RawDataRequest(int size, int filler) {
-        this(size);
-        Arrays.fill(requestData, (byte) filler);
+    public RawDataRequest(int requestDataSize, int readTimeSlots, int responseDataSize) {
+        this(new byte[requestDataSize], readTimeSlots, new byte[responseDataSize]);
     }
 
-    /**
-     *
-     * @param size the size of the buffer
-     */
-    public RawDataRequest(int size) {
-        this(new byte[size]);
-    }
-
-    public RawDataRequest(byte[] requestData, byte[] responseArray) {
+    public RawDataRequest(byte[] requestData, int readTimeSlots, byte[] responseArray) {
+        super(readTimeSlots);
         this.requestData = requestData;
         this.response = responseArray;
     }
 
     public RawDataRequest(byte[] requestData) {
-        this(requestData, new byte[requestData.length]);
+        this(requestData, 0, new byte[requestData.length]);
     }
 
     public final byte[] requestData;

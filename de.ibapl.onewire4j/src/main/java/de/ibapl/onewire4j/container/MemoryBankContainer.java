@@ -21,6 +21,162 @@
  */
 package de.ibapl.onewire4j.container;
 
-public interface MemoryBankContainer {
+import de.ibapl.onewire4j.OneWireAdapter;
+import de.ibapl.onewire4j.request.data.DataRequestWithDeviceCommand;
+import de.ibapl.onewire4j.utils.CRC16;
+import java.io.IOException;
+import java.util.Arrays;
+
+public interface MemoryBankContainer extends OneWireContainer {
+
+    public class ReadScratchpadRequest extends DataRequestWithDeviceCommand {
+
+        @OneWireDataCommand
+        public final static byte READ_SCRATCHPAD_CMD = (byte) 0xaa;
+
+        public ReadScratchpadRequest() {
+            super(READ_SCRATCHPAD_CMD, 0, 13, 13);
+        }
+
+        public short getAddressFromResponse() {
+            return (short) (((response[1] & 0x00ff) << 8) | (response[0] & 0xff));
+        }
+
+        public boolean isAA() {
+            return (response[2] & 0x80) == 0x80;
+        }
+
+        public boolean isPF() {
+            return (response[2] & 0x20) == 0x20;
+        }
+
+        public byte getEndingAddress() {
+            return (byte) (response[2] & 0x07);
+        }
+    }
+
+    public class WriteScratchpadRequest extends DataRequestWithDeviceCommand {
+
+        @OneWireDataCommand
+        public final static byte WRITE_SCRATCHPAD_CMD = (byte) 0x0f;
+
+        private final static int REQUEST_DATA_OFFSET = 2;
+
+        public WriteScratchpadRequest() {
+            super(WRITE_SCRATCHPAD_CMD, 10, 12, 12);
+        }
+
+        public void setAddress(int address) {
+            requestData[1] = (byte) (address >>> 8);
+            requestData[0] = (byte) (address & 0x00FF);
+        }
+
+        public void setData(byte[] data, int from) {
+            //TODO length
+            for (int i = 0; i < 8; i++) {
+                requestData[i + REQUEST_DATA_OFFSET] = data[i + from];
+            }
+        }
+
+        public short getAddressFromResponse() {
+            return (short) (((response[1] & 0x00ff) << 8) | (response[0] & 0xff));
+        }
+
+        public byte[] getCRC() {
+            return Arrays.copyOfRange(response, response.length - 2, response.length);
+        }
+
+    }
+
+    public class CopyScratchpadRequest extends DataRequestWithDeviceCommand {
+
+        @OneWireDataCommand
+        public final static byte COPY_SCRATCHPAD_CMD = (byte) 0x55;
+
+        public CopyScratchpadRequest() {
+            super(COPY_SCRATCHPAD_CMD, 3, 0, 0);
+        }
+
+        private void setAuthorizationKey(ReadScratchpadRequest readRequest) {
+            requestData[0] = readRequest.response[0];
+            requestData[1] = readRequest.response[1];
+            requestData[2] = readRequest.response[2];
+        }
+    }
+
+    public class ReadMemoryRequest extends DataRequestWithDeviceCommand {
+
+        @OneWireDataCommand
+        public final static byte READ_MEMORY_CMD = (byte) 0xf0;
+
+        public ReadMemoryRequest(int length) {
+            super(READ_MEMORY_CMD, 2, length, length);
+        }
+
+        public void setAddress(int address) {
+            requestData[1] = (byte) (address >>> 8);
+            requestData[0] = (byte) (address & 0x00FF);
+        }
+
+    }
+
+    default public boolean writeToMemory(OneWireAdapter adapter, int startAddress, byte[] data, int from, int to) throws IOException {
+//TODO only once ?? adapter.sendMatchRomRequest(getAddress());
+        adapter.sendMatchRomRequest(getAddress());
+
+        final WriteScratchpadRequest writeRequest = new WriteScratchpadRequest();
+        writeRequest.setAddress(startAddress);
+        writeRequest.setData(data, from);
+        adapter.sendCommand(writeRequest);
+
+        CRC16 crc16 = new CRC16();
+        crc16.crc16(writeRequest.command);
+        crc16.crc16(writeRequest.requestData);
+        crc16.crc16(writeRequest.getCRC());
+        if (!crc16.isOneComplement()) {
+            throw new IOException("CRC mismatch write");
+        }
+
+        crc16.resetCurrentCrc16();
+
+        final ReadScratchpadRequest readRequest = new ReadScratchpadRequest();
+        //  TODO send resume
+        adapter.sendMatchRomRequest(getAddress());
+        adapter.sendCommand(readRequest);
+        if (readRequest.isPF()) {
+            throw new IllegalArgumentException("scratchpad is not valid"); // TODO figure out whats wrong ...
+        } else if (readRequest.isAA()) {
+            throw new IllegalArgumentException("device did not recocnize write command"); // TODO figure out whats wrong ...
+        }
+
+        crc16.crc16(readRequest.command);
+        crc16.crc16(readRequest.response);
+        if (!crc16.isOneComplement()) {
+            throw new IOException("CRC mismatch read");
+        }
+
+        final CopyScratchpadRequest copyScratchpadRequest = new CopyScratchpadRequest();
+        adapter.sendMatchRomRequest(getAddress());
+        copyScratchpadRequest.setAuthorizationKey(readRequest);
+        adapter.sendCommand(copyScratchpadRequest);
+
+        final DataRequestWithDeviceCommand r = new DataRequestWithDeviceCommand((byte) 0xff, 0, 1, 1);
+
+        do {
+            adapter.sendCommand(r);
+        } while (r.response[0] != (byte) 0xaa);
+
+        adapter.sendReset();
+
+        return true;
+    }
+
+    default byte[] readMemory(OneWireAdapter adapter, int address, int len) throws IOException {
+        ReadMemoryRequest rm = new ReadMemoryRequest(len);
+        rm.setAddress(address);
+        adapter.sendMatchRomRequest(getAddress());
+        adapter.sendCommand(rm);
+        return rm.response;
+    }
 
 }

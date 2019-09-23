@@ -51,6 +51,7 @@ import de.ibapl.onewire4j.request.data.RawDataRequest;
 import de.ibapl.onewire4j.request.data.SearchCommand;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
+import java.util.Arrays;
 
 /**
  * Encodes a OneWireRequest to a byte or byte[] and write that data to the
@@ -67,7 +68,9 @@ public class Encoder {
 	public static final byte SKIP_ROM_CMD = (byte) 0xcc;
 	public static final byte SWITCH_TO_COMMAND_MODE_BYTE = (byte) 0xe3;
 	public static final byte SWITCH_TO_DATA_MODE_BYTE = (byte) 0xe1;
-
+	public final static byte ONE_WIRE_READ_BYTE_FILLER = (byte)0xff;
+	private final byte[] readTimeSlotsCache;
+        
 	final ByteBuffer buff;
 
 	/**
@@ -78,6 +81,8 @@ public class Encoder {
 	 */
 	public Encoder(ByteBuffer buff) {
             this.buff = buff;
+            readTimeSlotsCache = new byte[buff.capacity()];
+            Arrays.fill(readTimeSlotsCache, ONE_WIRE_READ_BYTE_FILLER);
 	}
 
 	/**
@@ -122,11 +127,11 @@ public class Encoder {
 			if (request instanceof SearchCommand) {
 				buff.put((byte)0xf0);
 			} else if (request instanceof RawDataRequest) {
-				writeDataBytes(((RawDataRequest) request).requestData);
+				writeDataBytes(((RawDataRequest) request).requestData, request.readTimeSlots);
 			} else if (request instanceof DataRequestWithDeviceCommand) {
 				final DataRequestWithDeviceCommand r = (DataRequestWithDeviceCommand) request;
 				buff.put(r.command);
-				writeDataBytes(r.requestData);
+				writeDataBytes(r.requestData, request.readTimeSlots);
 			} else {
 				throw new RuntimeException("NOT IMPLEMENTED: " + request.getClass());
 			}
@@ -375,7 +380,7 @@ public class Encoder {
 		}
 	}
 
-	private void writeDataBytes(final byte[] requestData) throws IOException {
+	private void writeDataBytes(final byte[] requestData, int readTimeSlots) throws IOException {
 		int lastWriteMark = 0;
 		for (int i = 0; i < requestData.length; i++) {
 			if (requestData[i] == SWITCH_TO_COMMAND_MODE_BYTE) {
@@ -385,6 +390,7 @@ public class Encoder {
 			}
 		}
 		buff.put(requestData, lastWriteMark, requestData.length - lastWriteMark);
+                buff.put(readTimeSlotsCache, 0, readTimeSlots);
 	}
 
     void put(byte b) {

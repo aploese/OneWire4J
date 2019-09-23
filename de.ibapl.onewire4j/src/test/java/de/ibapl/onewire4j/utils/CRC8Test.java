@@ -26,28 +26,73 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-
 /**
  *
  * @author Arne Plöse
  */
 public class CRC8Test {
-    
+
+    public static byte computeCRC8(byte value, byte seed) {
+        byte acc = value;
+        //TODO byte
+        int crc8 = seed & 0xff;
+
+        for (int bitToCompute = 0; bitToCompute < 8; bitToCompute++) {
+            if (((acc ^ crc8) & 0x01) == 0x01) {
+                crc8 = ((crc8 ^ 0x18) >> 1) | 0x80;
+            } else {
+                crc8 >>= 1;
+            }
+
+            acc >>= 1;
+        }
+        return (byte) crc8;
+
+    }
+
     public CRC8Test() {
     }
-    
+
     /**
      * Test of compute method, of class CRC8.
      */
     @Test
-    public void testCompute_byteArr() {
+    public void testCrc8Array() {
         System.out.println("compute");
 //        byte[] dataToCRC = new byte[] {(byte)0x55, (byte)0x00, (byte)0x08, (byte)0x03, (byte)0x35, (byte)0xf5, (byte)0x21, (byte)0x10};
-        byte[] dataToCRC = new byte[] {(byte)0x10, (byte)0x21, (byte)0xf5, (byte)0x35, (byte)0x03, (byte)0x08, (byte)0x00, (byte)0x55 };
+        byte[] dataToCRC = new byte[]{(byte) 0x10, (byte) 0x21, (byte) 0xf5, (byte) 0x35, (byte) 0x03, (byte) 0x08, (byte) 0x00, (byte) 0x55};
         int expResult = dataToCRC[7];
-        int result = CRC8.computeCrc8(dataToCRC, 0, 7, (byte)0);
+        int result = CRC8.crc8(dataToCRC, 0, 7, (byte) 0);
         assertEquals(expResult, result);
-        assertTrue(CRC8.checkCrc8(0x5500080335f52110L));
     }
 
+    @Test
+    public void testOneComplement() throws Exception {
+        for (int value = 0; value <= 0xff; value++) {
+            assertEquals(CRC8.CRC8_OF_SEEDS_ONE_COMPLEMENT, CRC8.crc8((byte) ~value, (byte) value));
+            assertEquals(CRC8.CRC8_OF_SEEDS_ONE_COMPLEMENT, computeCRC8((byte) ~value, (byte) value));
+        }
+    }
+
+    @Test
+    public void testSameInputAsSeed() throws Exception {
+        for (int value = 0; value <= 0xff; value++) {
+            assertEquals(0, CRC8.crc8((byte) value, (byte) value));
+            assertEquals(0, computeCRC8((byte) value, (byte) value));
+        }
+    }
+
+    @Test
+    public void testAddress() throws Exception {
+        assertTrue(CRC8.isAddressValid(0x710000190909132dL));
+    }
+
+    @Test
+    public void testCrc8() {
+        for (int seed = 0; seed < 0xff; seed++) {
+            for (int value = 0; value < 0xff; value++) {
+                assertEquals(computeCRC8((byte) value, (byte) seed), CRC8.crc8((byte) value, (byte) seed));
+            }
+        }
+    }
 }

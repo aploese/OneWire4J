@@ -19,7 +19,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.ibapl.spsw</groupId>
-			<artifactId>de.ibapl.spsw.jniprovider</artifactId>
+			<artifactId>de.ibapl.spsw.jnhwprovider</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>

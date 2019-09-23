@@ -35,12 +35,23 @@ import de.ibapl.onewire4j.utils.CRC8;
  * @author Arne Plöse
  */
 public interface TemperatureContainer extends OneWireContainer {
+    
+    public class ReadScratchpadRequest extends DataRequestWithDeviceCommand {
+        
+        public ReadScratchpadRequest() {
+            super(READ_SCRATCHPAD_CMD, 0, 9, 9);
+        }
+        
+    }
 
 	@OneWireDataCommand
 	public final byte READ_POWER_SUPPLY_CMD = (byte) 0xb4;
 
 	@OneWireDataCommand
 	public final byte CONVERT_TEMPERATURE_CMD = (byte) 0x44;
+
+      	@OneWireDataCommand
+	public final static byte READ_SCRATCHPAD_CMD = (byte)0xbe;
 
 	/**
 	 * Sends convert to all devices....
@@ -61,7 +72,7 @@ public interface TemperatureContainer extends OneWireContainer {
 			adapter.sendTerminatePulse();
 		} else {
 			adapter.sendCommand(new DataRequestWithDeviceCommand(CONVERT_TEMPERATURE_CMD, new byte[0]));
-			final ReadBytesRequest r = new ReadBytesRequest(1);
+			final ReadBytesRequest r = new ReadBytesRequest(0, 0, 1);
 			while (adapter.sendCommand(r)[0] != (byte) 0xff) {
 				r.resetState();
 				try {
@@ -85,7 +96,8 @@ public interface TemperatureContainer extends OneWireContainer {
 	public static boolean isParasitePower(OneWireAdapter adapter) throws IOException {
 		adapter.sendSkipRomRequest();
 		
-		DataRequestWithDeviceCommand readPowerSupplyRequest = new DataRequestWithDeviceCommand(READ_POWER_SUPPLY_CMD,
+                //TODO new format ... is available
+		DataRequestWithDeviceCommand readPowerSupplyRequest = new DataRequestWithDeviceCommand(READ_POWER_SUPPLY_CMD, 
 				new byte[] { (byte) 0xff });
 		adapter.sendCommand(readPowerSupplyRequest);
 		return readPowerSupplyRequest.response[0] != (byte) 0xff;
@@ -113,7 +125,7 @@ public interface TemperatureContainer extends OneWireContainer {
 	default void readScratchpad(OneWireAdapter adapter, ReadScratchpadRequest request) throws IOException {
 		adapter.sendMatchRomRequest(getAddress());
 		adapter.sendCommand(request.resetState());
-		if (CRC8.computeCrc8(request.response) != 0) {
+		if (CRC8.crc8(request.response) != 0) {
 			throw new IOException("CRC mismatch");
 		}
 	}

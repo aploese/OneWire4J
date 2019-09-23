@@ -165,7 +165,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 	@Override
 	public void searchDevices(LongConsumer longConsumer) throws IOException {
 		final OWSearchIterator searchIterator = new OWSearchIterator();
-		final RawDataRequest searchCommandData = new RawDataRequest(16);
+		final RawDataRequest searchCommandData = new RawDataRequest(0, 16, 16);
 		final SearchCommand searchCommand = new SearchCommand();
 		while (!searchIterator.isSearchFinished()) {
 			sendCommand(ResetDeviceRequest.of(speedFromBaudrate));
@@ -319,7 +319,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 	public void sendMatchRomRequest(long address) throws IOException {
 		sendReset();
 		final DataRequestWithDeviceCommand request = new DataRequestWithDeviceCommand(Encoder.MATCH_ROM_CMD,
-				OneWireContainer.arrayOfLong(address));
+				OneWireContainer.arrayOfAddress(address));
 		sendCommand(request);
 		
 		long result = OneWireContainer.addressOf(request.response);
@@ -335,7 +335,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 
 	@Override
 	public byte sendReadByteRequest() throws IOException {
-		return sendCommand(new ReadBytesRequest(1))[0];
+		return sendCommand(new ReadBytesRequest(0,1,1))[0];
 	}
 
 	@Override

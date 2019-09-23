@@ -71,7 +71,7 @@ public class OneWireContainerTest {
         System.out.println("arrayOfLong");
         long address = 0L;
         byte[] expResult = new byte[] {(byte)0x10, (byte)0x21, (byte)0xf5, (byte)0x35, (byte)0x03, (byte)0x08, (byte)0x00, (byte)0x55 };
-        byte[] result = OneWireContainer.arrayOfLong(0x5500080335f52110L);
+        byte[] result = OneWireContainer.arrayOfAddress(0x5500080335f52110L);
         assertArrayEquals(expResult, result);
     }
 

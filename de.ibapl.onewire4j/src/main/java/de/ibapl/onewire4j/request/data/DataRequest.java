@@ -29,6 +29,13 @@ import de.ibapl.onewire4j.request.OneWireRequest;
  */
 public abstract class DataRequest<R> extends OneWireRequest<R> {
 
-	public final static byte ONE_WIRE_READ_BYTE_FILLER = (byte)0xff;
+    public DataRequest() {
+        super();
+    }
+    
+    
+    public DataRequest(int readTimeSlots) {
+        super(readTimeSlots);
+    }
 
 }

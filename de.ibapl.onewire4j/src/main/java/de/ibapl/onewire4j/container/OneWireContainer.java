@@ -30,7 +30,7 @@ import de.ibapl.onewire4j.utils.CRC8;
 public interface OneWireContainer {
 
 	public static boolean isAsddressValid(long address) {
-		return CRC8.checkCrc8(address);
+		return CRC8.isAddressValid(address);
 		// TODO The DS28E04 has a pin selectable ROM ID input. However,
 		// the CRC8 for the ROM ID assumes that the selecatable bits
 		// are always 1.
@@ -40,7 +40,7 @@ public interface OneWireContainer {
 		return String.format("%08x", address);
 	}
 
-	public static byte[] arrayOfLong(final long address) {
+	public static byte[] arrayOfAddress(final long address) {
 		final byte[] result = new byte[8];
 		result[0] = (byte) (address & 0xFF);
 		result[1] = (byte) ((address >> 8) & 0xFF);

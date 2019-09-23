@@ -21,6 +21,9 @@
  */
 package de.ibapl.onewire4j.container;
 
+import de.ibapl.onewire4j.OneWireAdapter;
+import java.io.IOException;
+
 /**
  *
  * @author Arne Plöse

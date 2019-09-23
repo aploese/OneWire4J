@@ -53,6 +53,16 @@ public abstract class OneWireRequest<R> {
 
     public R response;
 
+    public final int readTimeSlots;
+    
+    public OneWireRequest() {
+        readTimeSlots = 0;
+    }
+
+    public OneWireRequest(int readTimeSlots) {
+        this.readTimeSlots = readTimeSlots;
+    }
+
 	/**
 	 * Sets the internal state to {@linkplain RequestState#READY_TO_SEND}.
      * 

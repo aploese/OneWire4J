@@ -22,7 +22,6 @@
 package de.ibapl.onewire4j.request.data;
 
 import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
-import java.util.Arrays;
 
 /**
  *
@@ -33,19 +32,20 @@ public class DataRequestWithDeviceCommand extends DataRequest<byte[]> {
     /**
      *
      * @param command the command is send first followed by the data
-     * @param size the remaining size for the data
-     * @param filler the byte with to fill the data section
+     * @param requestSize the size for the request data
+     * @param readTimeSlots the readTimeSlots in bytes
+     * @param responseSize the size of the response 
      */
-    public DataRequestWithDeviceCommand(byte command, int size, byte filler) {
-        this(command, new byte[size], new byte[size]);
-        Arrays.fill(requestData, filler);
+    public DataRequestWithDeviceCommand(byte command, int requestSize, int readTimeSlots, int responseSize) {
+        this(command, new byte[requestSize], readTimeSlots, new byte[responseSize]);
     }
 
     public DataRequestWithDeviceCommand(byte command, byte[] requestData) {
-        this(command, requestData, new byte[requestData.length]);
+        this(command, requestData, 0, new byte[requestData.length]);
     }
 
-    public DataRequestWithDeviceCommand(byte command, byte[] requestData, byte[] responseArray) {
+    public DataRequestWithDeviceCommand(byte command, byte[] requestData, int readTimeSlots, byte[] responseArray) {
+        super(readTimeSlots);
         this.requestData = requestData;
         this.response = responseArray;
         this.command = command;
@@ -62,13 +62,14 @@ public class DataRequestWithDeviceCommand extends DataRequest<byte[]> {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("DataRequestWithDeviceCommand(command=").append(command);
+        sb.append(String.format("DataRequestWithDeviceCommand(command=0x%02x", command));
         sb.append(", requestState=").append(requestState);
         sb.append(", requestData=[0x");
         for (int i = 0; i < requestData.length; i++) {
             sb.append(String.format("%02x", requestData[i]));
         }
-        sb.append("], response=[0x");
+        sb.append("], readTimeSlots=").append(readTimeSlots);
+        sb.append(", response=[0x");
         for (int i = 0; i < response.length; i++) {
             sb.append(String.format("%02x", response[i]));
         }
