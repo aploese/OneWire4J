@@ -99,7 +99,7 @@ public class Main {
                             }
                         } else if (owc instanceof MemoryBankContainer) {
                             final MemoryBankContainer mc = (MemoryBankContainer) owc;
-                            byte[] v = mc.readMemory(adapter);
+                            byte[] v = mc.readMemory(adapter, 0, 8);
                             logString = Instant.now() + "\t" + owc.getAddressAsString() + "\t" + bytes2HexString(v) + "\n";
                             System.err.print(logString);
                             log.write(logString.getBytes());

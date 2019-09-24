@@ -47,14 +47,21 @@ public class MemoryBankContainerTest {
     public MemoryBankContainerTest() {
     }
 
-    private static OneWireAdapter adapter;
+    private OneWireAdapter adapter;
     private static String SERIAL_PORT_NAME = "/dev/ttyUSB0";
     private final static long TESTABLE_CONTAINERS[] = new long[]{0x710000190909132dL};
     private final static List<MemoryBankContainer> containers = new LinkedList<>();
     
     @BeforeAll
     public static void setUpClass() throws Exception {
-        FileOutputStream log = new FileOutputStream("owapi-ng.csv"); 
+    }
+    
+    @AfterAll
+    public static void tearDownClass() throws Exception {
+    }
+    
+    @BeforeEach
+    public void setUp() throws Exception {
             ServiceLoader<SerialPortSocketFactory> spsFactory = ServiceLoader.load(SerialPortSocketFactory.class);
             SerialPortSocketFactory serialPortSocketFactory = spsFactory.iterator().next();
             System.out.println("serialPortSocketFactory " + serialPortSocketFactory.getClass().getName());
@@ -75,16 +82,9 @@ public class MemoryBankContainerTest {
                 System.err.println();
     }
     
-    @AfterAll
-    public static void tearDownClass() throws Exception {
-    }
-    
-    @BeforeEach
-    public void setUp() throws Exception {
-    }
-    
     @AfterEach
     public void tearDown() throws Exception {
+        adapter.close();
     }
 
     /**
@@ -96,9 +96,8 @@ public class MemoryBankContainerTest {
         byte data[] = new byte[] {0x11, 0x48, 0x02, 0x03, 0x04, 0x05, 0x60, (byte)0xf0};
         for (MemoryBankContainer mbc: containers) {
             Assertions.assertTrue(mbc.writeToMemory(adapter, 0x0008, data, 0, data.length), "Unsuccessful write to memory");
-            Assertions.assertArrayEquals(data, mbc.readMemory(adapter, 0, 8));
+            Assertions.assertArrayEquals(data, mbc.readMemory(adapter, 0x0008, 8));
         }
-      Assertions.fail("The test case is a prototype.");
     }
 
     

@@ -63,7 +63,7 @@ public interface MemoryBankContainer extends OneWireContainer {
         private final static int REQUEST_DATA_OFFSET = 2;
 
         public WriteScratchpadRequest() {
-            super(WRITE_SCRATCHPAD_CMD, 10, 12, 12);
+            super(WRITE_SCRATCHPAD_CMD, 10, 2, 12);
         }
 
         public void setAddress(int address) {
@@ -110,12 +110,16 @@ public interface MemoryBankContainer extends OneWireContainer {
         public final static byte READ_MEMORY_CMD = (byte) 0xf0;
 
         public ReadMemoryRequest(int length) {
-            super(READ_MEMORY_CMD, 2, length, length);
+            super(READ_MEMORY_CMD, 2, length, length + 2);
         }
 
         public void setAddress(int address) {
             requestData[1] = (byte) (address >>> 8);
             requestData[0] = (byte) (address & 0x00FF);
+        }
+
+        private byte[] getResponseData() {
+            return Arrays.copyOfRange(response, 2, response.length);
         }
 
     }
@@ -160,13 +164,6 @@ public interface MemoryBankContainer extends OneWireContainer {
         copyScratchpadRequest.setAuthorizationKey(readRequest);
         adapter.sendCommand(copyScratchpadRequest);
 
-        final DataRequestWithDeviceCommand r = new DataRequestWithDeviceCommand((byte) 0xff, 0, 1, 1);
-
-        do {
-            adapter.sendCommand(r);
-        } while (r.response[0] != (byte) 0xaa);
-
-        adapter.sendReset();
 
         return true;
     }
@@ -176,7 +173,7 @@ public interface MemoryBankContainer extends OneWireContainer {
         rm.setAddress(address);
         adapter.sendMatchRomRequest(getAddress());
         adapter.sendCommand(rm);
-        return rm.response;
+        return rm.getResponseData();
     }
 
 }
