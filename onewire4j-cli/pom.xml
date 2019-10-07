@@ -10,7 +10,7 @@
 
 	<artifactId>onewire4j-cli</artifactId>
 	<packaging>jar</packaging>
-	<name>OneWire4J CLI</name>
+	<name>OneWire4J :: CLI</name>
 
 	<dependencies>
 		<dependency>

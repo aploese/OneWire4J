@@ -38,14 +38,6 @@ import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
 public interface OneWireAdapter extends AutoCloseable {
 
 	/**
-	 * Open the port with the default parameters.
-	 * 
-	 * @throws IOException
-	 *             if the port can't be opened.
-	 */
-	void open() throws IOException;
-
-	/**
 	 * Returns the open state of the serial port.
 	 * 
 	 * @return true if open.

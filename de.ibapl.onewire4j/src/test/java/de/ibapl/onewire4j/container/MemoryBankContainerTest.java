@@ -37,11 +37,13 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 
 /**
  *
  * @author aploese
  */
+@Disabled
 public class MemoryBankContainerTest {
     
     public MemoryBankContainerTest() {
@@ -65,7 +67,7 @@ public class MemoryBankContainerTest {
             ServiceLoader<SerialPortSocketFactory> spsFactory = ServiceLoader.load(SerialPortSocketFactory.class);
             SerialPortSocketFactory serialPortSocketFactory = spsFactory.iterator().next();
             System.out.println("serialPortSocketFactory " + serialPortSocketFactory.getClass().getName());
-            final SerialPortSocket port = serialPortSocketFactory.createSerialPortSocket(SERIAL_PORT_NAME);
+            final SerialPortSocket port = serialPortSocketFactory.open(SERIAL_PORT_NAME);
             LoggingSerialPortSocket lport = LoggingSerialPortSocket.wrapWithHexOutputStream(port,
                     new FileOutputStream("owapi-ng.log"), false, TimeStampLogging.UTC);
 

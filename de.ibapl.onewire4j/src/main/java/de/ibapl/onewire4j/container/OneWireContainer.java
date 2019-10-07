@@ -28,6 +28,8 @@ import de.ibapl.onewire4j.utils.CRC8;
  * @author Arne Plöse
  */
 public interface OneWireContainer {
+    
+    public final static int ADDRESS_SIZE = 8;
 
 	public static boolean isAsddressValid(long address) {
 		return CRC8.isAddressValid(address);
@@ -41,7 +43,7 @@ public interface OneWireContainer {
 	}
 
 	public static byte[] arrayOfAddress(final long address) {
-		final byte[] result = new byte[8];
+		final byte[] result = new byte[ADDRESS_SIZE];
 		result[0] = (byte) (address & 0xFF);
 		result[1] = (byte) ((address >> 8) & 0xFF);
 		result[2] = (byte) ((address >> 16) & 0xFF);
@@ -54,6 +56,9 @@ public interface OneWireContainer {
 	}
 
 	public static long addressOf(final byte[] address) {
+            if (address.length != ADDRESS_SIZE) {
+                throw new IllegalArgumentException("Address size mismatch");
+            }
 		long result = (long) (address[7] & 0xFF) << 56;
 		result |= (long) (address[6] & 0xFF) << 48;
 		result |= (long) (address[5] & 0xFF) << 40;

@@ -26,5 +26,9 @@ package de.ibapl.onewire4j.request;
  * @author Arne Plöse
  */
 public abstract class CommandRequest<R> extends OneWireRequest<R> {
+    
+    public CommandRequest() {
+        super(0);
+    }
 
 }

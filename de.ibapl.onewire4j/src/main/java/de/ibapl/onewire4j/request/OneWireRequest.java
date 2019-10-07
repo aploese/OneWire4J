@@ -55,11 +55,10 @@ public abstract class OneWireRequest<R> {
 
     public final int readTimeSlots;
     
-    public OneWireRequest() {
-        readTimeSlots = 0;
-    }
-
     public OneWireRequest(int readTimeSlots) {
+        if (readTimeSlots < 0 ) {
+            throw new IllegalArgumentException("read time slots must not be nagative!");
+        }
         this.readTimeSlots = readTimeSlots;
     }
 

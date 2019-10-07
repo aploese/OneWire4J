@@ -23,6 +23,7 @@ package de.ibapl.onewire4j.container;
 
 import de.ibapl.onewire4j.OneWireAdapter;
 import de.ibapl.onewire4j.request.data.DataRequestWithDeviceCommand;
+import de.ibapl.onewire4j.request.data.RawDataRequest;
 import de.ibapl.onewire4j.utils.CRC16;
 import java.io.IOException;
 import java.util.Arrays;
@@ -35,7 +36,7 @@ public interface MemoryBankContainer extends OneWireContainer {
         public final static byte READ_SCRATCHPAD_CMD = (byte) 0xaa;
 
         public ReadScratchpadRequest() {
-            super(READ_SCRATCHPAD_CMD, 0, 13, 13);
+            super(READ_SCRATCHPAD_CMD, 0, 13);
         }
 
         public short getAddressFromResponse() {
@@ -63,7 +64,7 @@ public interface MemoryBankContainer extends OneWireContainer {
         private final static int REQUEST_DATA_OFFSET = 2;
 
         public WriteScratchpadRequest() {
-            super(WRITE_SCRATCHPAD_CMD, 10, 2, 12);
+            super(WRITE_SCRATCHPAD_CMD, 10, 2);
         }
 
         public void setAddress(int address) {
@@ -94,7 +95,7 @@ public interface MemoryBankContainer extends OneWireContainer {
         public final static byte COPY_SCRATCHPAD_CMD = (byte) 0x55;
 
         public CopyScratchpadRequest() {
-            super(COPY_SCRATCHPAD_CMD, 3, 0, 0);
+            super(COPY_SCRATCHPAD_CMD, 3, 0);
         }
 
         private void setAuthorizationKey(ReadScratchpadRequest readRequest) {
@@ -110,7 +111,7 @@ public interface MemoryBankContainer extends OneWireContainer {
         public final static byte READ_MEMORY_CMD = (byte) 0xf0;
 
         public ReadMemoryRequest(int length) {
-            super(READ_MEMORY_CMD, 2, length, length + 2);
+            super(READ_MEMORY_CMD, 2, length);
         }
 
         public void setAddress(int address) {
@@ -164,7 +165,16 @@ public interface MemoryBankContainer extends OneWireContainer {
         copyScratchpadRequest.setAuthorizationKey(readRequest);
         adapter.sendCommand(copyScratchpadRequest);
 
+        RawDataRequest rdr = new RawDataRequest(0, 16);
 
+        for (int i = 0; i < 100; i++) {
+            rdr.resetState();
+            adapter.sendCommand(rdr);
+            if (((rdr.response[15] == (byte) 0x55)) || (rdr.response[15] == (byte) 0xaa)) {
+                break;
+            }
+        }
+        
         return true;
     }
 

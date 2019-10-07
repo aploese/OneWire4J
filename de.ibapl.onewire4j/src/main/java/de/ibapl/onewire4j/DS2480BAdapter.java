@@ -62,7 +62,9 @@ import de.ibapl.spsw.api.Parity;
 import de.ibapl.spsw.api.SerialPortSocket;
 import de.ibapl.spsw.api.Speed;
 import de.ibapl.spsw.api.StopBits;
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * This class provides an implementation used for accessing the DS2480B.
@@ -88,8 +90,30 @@ public class DS2480BAdapter implements OneWireAdapter {
 	 * 
 	 * @param serialPortSocket the {@linkplain SerialPortSocket} to use.
 	 */
-	public DS2480BAdapter(SerialPortSocket serialPortSocket) {
+	public DS2480BAdapter(SerialPortSocket serialPortSocket) throws IOException{
+            if (!serialPortSocket.isOpen()) {
+                throw new IllegalStateException("serial port is closed");
+            }
 		this.serialPort = serialPortSocket;
+		try {
+			serialPort.setSpeed(Speed._9600_BPS);
+                        serialPort.setDataBits(DataBits.DB_8);
+                        serialPort.setStopBits(StopBits.SB_1);
+                        serialPort.setParity(Parity.NONE);
+                        serialPort.setFlowControl(FlowControl.getFC_NONE());
+			serialPort.setTimeouts(100, 1000, 1000);
+			encoder = new Encoder(ByteBuffer.allocateDirect(64));
+			decoder = new Decoder(ByteBuffer.allocateDirect(64));
+			init();
+		} catch (Exception e) {
+			//Clean up
+			encoder = null;
+			decoder = null;
+			if (serialPort.isOpen()) {
+				serialPort.close();
+			}
+			throw e;
+		}
 	}
 
 	@Override
@@ -134,26 +158,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 
 	@Override
 	public boolean isOpen() {
-		return serialPort == null ? false : serialPort.isOpen();
-	}
-
-	@Override
-	public void open() throws IOException {
-		try {
-			serialPort.open(Speed._9600_BPS, DataBits.DB_8, StopBits.SB_1, Parity.NONE, FlowControl.getFC_NONE());
-			serialPort.setTimeouts(100, 1000, 1000);
-			encoder = new Encoder(ByteBuffer.allocateDirect(64));
-			decoder = new Decoder(ByteBuffer.allocateDirect(64));
-			init();
-		} catch (Exception e) {
-			//Clean up
-			encoder = null;
-			decoder = null;
-			if (serialPort.isOpen()) {
-				serialPort.close();
-			}
-			throw e;
-		}
+		return serialPort.isOpen();
 	}
 
 	protected void readGarbage() throws IOException {
@@ -165,7 +170,9 @@ public class DS2480BAdapter implements OneWireAdapter {
 	@Override
 	public void searchDevices(LongConsumer longConsumer) throws IOException {
 		final OWSearchIterator searchIterator = new OWSearchIterator();
-		final RawDataRequest searchCommandData = new RawDataRequest(0, 16, 16);
+                byte[] data = new byte[16];
+                Arrays.fill(data, (byte)0);
+		final RawDataRequest searchCommandData = new RawDataRequest(data);
 		final SearchCommand searchCommand = new SearchCommand();
 		while (!searchIterator.isSearchFinished()) {
 			sendCommand(ResetDeviceRequest.of(speedFromBaudrate));
@@ -319,7 +326,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 	public void sendMatchRomRequest(long address) throws IOException {
 		sendReset();
 		final DataRequestWithDeviceCommand request = new DataRequestWithDeviceCommand(Encoder.MATCH_ROM_CMD,
-				OneWireContainer.arrayOfAddress(address));
+				OneWireContainer.arrayOfAddress(address), new byte[OneWireContainer.ADDRESS_SIZE]);
 		sendCommand(request);
 		
 		long result = OneWireContainer.addressOf(request.response);
@@ -335,7 +342,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 
 	@Override
 	public byte sendReadByteRequest() throws IOException {
-		return sendCommand(new ReadBytesRequest(0,1,1))[0];
+		return sendCommand(new ReadBytesRequest(0,1))[0];
 	}
 
 	@Override
@@ -346,8 +353,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 	@Override
 	public byte[] sendSkipRomRequest() throws IOException {
 		sendReset();
-		final DataRequestWithDeviceCommand request = new DataRequestWithDeviceCommand(Encoder.SKIP_ROM_CMD,
-				new byte[0]);
+		final DataRequestWithDeviceCommand request = new DataRequestWithDeviceCommand(Encoder.SKIP_ROM_CMD, 0, 0);
 		return sendCommand(request);
 	}
 

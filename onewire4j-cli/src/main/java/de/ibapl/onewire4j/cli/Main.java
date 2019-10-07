@@ -36,6 +36,7 @@ import de.ibapl.spsw.api.SerialPortSocket;
 import de.ibapl.spsw.api.SerialPortSocketFactory;
 import de.ibapl.spsw.logging.LoggingSerialPortSocket;
 import de.ibapl.spsw.logging.TimeStampLogging;
+import java.io.IOException;
 
 /**
  *
@@ -54,7 +55,7 @@ public class Main {
             if (args.length == 0) {
                 throw new IllegalArgumentException("Portname is missing");
             }
-            final SerialPortSocket port = serialPortSocketFactory.createSerialPortSocket(args[0]);
+            final SerialPortSocket port = serialPortSocketFactory.open(args[0]);
             LoggingSerialPortSocket lport = LoggingSerialPortSocket.wrapWithHexOutputStream(port,
                     new FileOutputStream("/tmp/owapi-ng.log"), false, TimeStampLogging.UTC);
 
@@ -63,12 +64,28 @@ public class Main {
                 System.err.println("Some device uses parasite power: " + parasitePowerNeeded);
 
                 final LinkedList<OneWireContainer> owcs = new LinkedList<>();
+                /*
                 System.err.print("Addresses:");
                 adapter.searchDevices((OneWireContainer owc) -> {
                     System.err.append(' ').append(owc.getAddressAsString());
                     owcs.add(owc);
                 });
                 System.err.println();
+                 */
+                boolean doLoop = true;
+                while (doLoop) {
+                    try {
+                        adapter.searchDevices((OneWireContainer owc) -> {
+                            System.err.append(' ').append(owc.getAddressAsString());
+                        });
+                        System.err.println();
+                        Thread.sleep(500);
+                    }
+                    catch (Exception e) {
+                        Thread.sleep(500);
+
+                    }
+                }
 
                 String logString = "";
                 while (true) {
@@ -118,6 +135,6 @@ public class Main {
         for (byte b : value) {
             sb.append(String.format("0x%02x, ", b));
         }
-        return sb.substring(0, sb.length() -2);
+        return sb.substring(0, sb.length() - 2);
     }
 }

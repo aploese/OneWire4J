@@ -22,7 +22,6 @@
 package de.ibapl.onewire4j.request.data;
 
 import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
-import java.util.Arrays;
 
 /**
  *
@@ -30,18 +29,20 @@ import java.util.Arrays;
  */
 public class RawDataRequest extends DataRequest<byte[]> {
 
-    public RawDataRequest(int requestDataSize, int readTimeSlots, int responseDataSize) {
-        this(new byte[requestDataSize], readTimeSlots, new byte[responseDataSize]);
+    public RawDataRequest(int requestDataSize, int readTimeSlots) {
+        super(readTimeSlots);
+        requestData = new byte[requestDataSize];
+        response = new byte[requestDataSize + readTimeSlots];
     }
 
-    public RawDataRequest(byte[] requestData, int readTimeSlots, byte[] responseArray) {
-        super(readTimeSlots);
+    public RawDataRequest(byte[] requestData, byte[] responseArray) {
+        super(responseArray.length - requestData.length);
         this.requestData = requestData;
         this.response = responseArray;
     }
 
     public RawDataRequest(byte[] requestData) {
-        this(requestData, 0, new byte[requestData.length]);
+        this(requestData, new byte[requestData.length]);
     }
 
     public final byte[] requestData;

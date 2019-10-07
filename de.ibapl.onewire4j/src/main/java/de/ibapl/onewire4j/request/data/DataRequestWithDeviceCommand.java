@@ -34,18 +34,16 @@ public class DataRequestWithDeviceCommand extends DataRequest<byte[]> {
      * @param command the command is send first followed by the data
      * @param requestSize the size for the request data
      * @param readTimeSlots the readTimeSlots in bytes
-     * @param responseSize the size of the response 
      */
-    public DataRequestWithDeviceCommand(byte command, int requestSize, int readTimeSlots, int responseSize) {
-        this(command, new byte[requestSize], readTimeSlots, new byte[responseSize]);
-    }
-
-    public DataRequestWithDeviceCommand(byte command, byte[] requestData) {
-        this(command, requestData, 0, new byte[requestData.length]);
-    }
-
-    public DataRequestWithDeviceCommand(byte command, byte[] requestData, int readTimeSlots, byte[] responseArray) {
+    public DataRequestWithDeviceCommand(byte command, int requestSize, int readTimeSlots) {
         super(readTimeSlots);
+        this.command = command;
+        requestData = new byte[requestSize];
+        response = new byte[requestSize + readTimeSlots];
+    }
+
+    public DataRequestWithDeviceCommand(byte command, byte[] requestData, byte[] responseArray) {
+        super(responseArray.length - requestData.length);
         this.requestData = requestData;
         this.response = responseArray;
         this.command = command;

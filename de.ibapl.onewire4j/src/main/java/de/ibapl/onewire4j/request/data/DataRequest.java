@@ -29,11 +29,6 @@ import de.ibapl.onewire4j.request.OneWireRequest;
  */
 public abstract class DataRequest<R> extends OneWireRequest<R> {
 
-    public DataRequest() {
-        super();
-    }
-    
-    
     public DataRequest(int readTimeSlots) {
         super(readTimeSlots);
     }

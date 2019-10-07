@@ -7,7 +7,7 @@
 	</parent>
 
 	<artifactId>de.ibapl.onewire4j</artifactId>
-	<name>OneWire4J</name>
+	<name>OneWire4J :: API/SPI</name>
 
 	<dependencies>
 		<dependency>

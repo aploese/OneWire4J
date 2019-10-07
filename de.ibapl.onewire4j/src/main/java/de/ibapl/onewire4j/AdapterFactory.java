@@ -44,20 +44,18 @@ public class AdapterFactory {
      * @throws IOException on error.
      */
     public OneWireAdapter open(SerialPortSocket serialPortSocket, int tries) throws IOException {
-        final DS2480BAdapter result = new DS2480BAdapter(serialPortSocket);
         if (tries <= 0) {
             throw new IllegalArgumentException("Tries must be greater 0");
         }
         for (int i = tries; i > 0; i--) {
             try {
-                result.open();
-                return result;
+                return new DS2480BAdapter(serialPortSocket);
             } catch (Throwable t) {
                 if (i == 0) {
                     throw t;
                 }
             }
         }
-        return result;
+        throw new RuntimeException("cant open OneWireAdapter!");
     }
 }

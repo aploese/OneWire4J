@@ -39,7 +39,7 @@ public interface TemperatureContainer extends OneWireContainer {
     public class ReadScratchpadRequest extends DataRequestWithDeviceCommand {
         
         public ReadScratchpadRequest() {
-            super(READ_SCRATCHPAD_CMD, 0, 9, 9);
+            super(READ_SCRATCHPAD_CMD, 0, 9);
         }
         
     }
@@ -71,8 +71,8 @@ public interface TemperatureContainer extends OneWireContainer {
 			}
 			adapter.sendTerminatePulse();
 		} else {
-			adapter.sendCommand(new DataRequestWithDeviceCommand(CONVERT_TEMPERATURE_CMD, new byte[0]));
-			final ReadBytesRequest r = new ReadBytesRequest(0, 0, 1);
+			adapter.sendCommand(new DataRequestWithDeviceCommand(CONVERT_TEMPERATURE_CMD, 0, 0));
+			final ReadBytesRequest r = new ReadBytesRequest(0, 1);
 			while (adapter.sendCommand(r)[0] != (byte) 0xff) {
 				r.resetState();
 				try {
@@ -97,8 +97,7 @@ public interface TemperatureContainer extends OneWireContainer {
 		adapter.sendSkipRomRequest();
 		
                 //TODO new format ... is available
-		DataRequestWithDeviceCommand readPowerSupplyRequest = new DataRequestWithDeviceCommand(READ_POWER_SUPPLY_CMD, 
-				new byte[] { (byte) 0xff });
+		DataRequestWithDeviceCommand readPowerSupplyRequest = new DataRequestWithDeviceCommand(READ_POWER_SUPPLY_CMD, 0, 1);
 		adapter.sendCommand(readPowerSupplyRequest);
 		return readPowerSupplyRequest.response[0] != (byte) 0xff;
 	}
