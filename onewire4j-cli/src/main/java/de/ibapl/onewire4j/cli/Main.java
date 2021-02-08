@@ -37,6 +37,8 @@ import de.ibapl.spsw.api.SerialPortSocketFactory;
 import de.ibapl.spsw.logging.LoggingSerialPortSocket;
 import de.ibapl.spsw.logging.TimeStampLogging;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import jdk.jshell.spi.ExecutionControl;
 
 /**
  *
@@ -72,56 +74,57 @@ public class Main {
                 });
                 System.err.println();
                  */
-                boolean doLoop = true;
-                while (doLoop) {
+                boolean doLoop = false;
+                do {
                     try {
                         adapter.searchDevices((OneWireContainer owc) -> {
                             System.err.append(' ').append(owc.getAddressAsString());
                         });
                         System.err.println();
                         Thread.sleep(500);
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         Thread.sleep(500);
 
                     }
-                }
+                } while (doLoop);
 
-                String logString = "";
+                log.write("Timestamp".getBytes());
+                adapter.searchDevices((OneWireContainer owc) -> {
+                    owcs.add(owc);
+                    try {
+                    log.write((byte) '\t');
+                    log.write(owc.getAddressAsString().getBytes());
+                    } catch (IOException ioe) {
+                        throw new RuntimeException(ioe);
+                    }
+                });
                 while (true) {
                     TemperatureContainer.sendDoConvertRequestToAll(adapter, parasitePowerNeeded);
+                    log.write((byte) '\n');
+                    log.write(Instant.now().toString().getBytes());
                     for (OneWireContainer owc : owcs) {
                         if (owc instanceof TemperatureContainer) {
                             final TemperatureContainer tc = (TemperatureContainer) owc;
                             try {
+                                log.write((byte) '\t');
                                 TemperatureContainer.ReadScratchpadRequest request = new TemperatureContainer.ReadScratchpadRequest();
                                 tc.readScratchpad(adapter, request);
                                 final double temp = tc.getTemperature(request);
-                                logString = Instant.now() + "\t" + owc.getAddressAsString() + "\t" + temp + "°C\n";
-                                log.write(logString.getBytes());
+                                log.write(String.valueOf(temp).getBytes());
                             } catch (ENotProperlyConvertedException e) {
-                                logString = Instant.now() + "\t" + owc.getAddressAsString() + "\t" + e.getValue()
-                                        + "°C\t ERROR? \n";
-                                log.write(logString.getBytes());
                                 try {
                                     final double temp = tc.convertAndReadTemperature(adapter);
-                                    logString = Instant.now() + "\t" + owc.getAddressAsString() + "\t" + temp + "°C\n";
-                                    log.write(logString.getBytes());
+                                    log.write(String.valueOf(temp).getBytes());
                                 } catch (ENotProperlyConvertedException e1) {
-                                    logString = Instant.now() + "\t" + owc.getAddressAsString() + "\t" + e.getValue()
-                                            + "°C\t ERROR AGAIN ... MAYBE NOT \n";
-                                    System.err.print(logString);
-                                    log.write(logString.getBytes());
+                                    log.write("ENotProperlyConvertedException".getBytes());
                                 }
                             }
                         } else if (owc instanceof MemoryBankContainer) {
                             final MemoryBankContainer mc = (MemoryBankContainer) owc;
                             byte[] v = mc.readMemory(adapter, 0, 8);
-                            logString = Instant.now() + "\t" + owc.getAddressAsString() + "\t" + bytes2HexString(v) + "\n";
-                            System.err.print(logString);
-                            log.write(logString.getBytes());
                         }
                     }
+                    Thread.sleep(60_000);
                 }
             }
         }

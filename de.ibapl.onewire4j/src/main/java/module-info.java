@@ -22,7 +22,7 @@
 module de.ibapl.onewire4j {
 
     requires java.logging;
-    requires osgi.annotation;
+    //requires osgi.annotation;
     requires transitive de.ibapl.spsw.api;
     
     //TODO error but junit tests need this....
