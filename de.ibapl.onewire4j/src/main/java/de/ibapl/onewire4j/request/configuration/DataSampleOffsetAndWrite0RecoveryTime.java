@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -35,14 +35,14 @@ public enum DataSampleOffsetAndWrite0RecoveryTime {
     DSO_AND_W0RT_9(9),
     DSO_AND_W0RT_10(10);
     public final byte value;
-    
+
     private DataSampleOffsetAndWrite0RecoveryTime(int value) {
         this.value = (byte) value;
     }
-    
+
     @Override
-	public String toString() {
+    public String toString() {
         return value + " µs";
     }
-    
+
 }

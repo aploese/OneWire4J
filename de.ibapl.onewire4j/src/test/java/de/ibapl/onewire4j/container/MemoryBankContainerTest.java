@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -45,7 +45,7 @@ import org.junit.jupiter.api.Disabled;
  */
 @Disabled
 public class MemoryBankContainerTest {
-    
+
     public MemoryBankContainerTest() {
     }
 
@@ -53,37 +53,37 @@ public class MemoryBankContainerTest {
     private static String SERIAL_PORT_NAME = "/dev/ttyUSB0";
     private final static long TESTABLE_CONTAINERS[] = new long[]{0x710000190909132dL};
     private final static List<MemoryBankContainer> containers = new LinkedList<>();
-    
+
     @BeforeAll
     public static void setUpClass() throws Exception {
     }
-    
+
     @AfterAll
     public static void tearDownClass() throws Exception {
     }
-    
+
     @BeforeEach
     public void setUp() throws Exception {
-            ServiceLoader<SerialPortSocketFactory> spsFactory = ServiceLoader.load(SerialPortSocketFactory.class);
-            SerialPortSocketFactory serialPortSocketFactory = spsFactory.iterator().next();
-            System.out.println("serialPortSocketFactory " + serialPortSocketFactory.getClass().getName());
-            final SerialPortSocket port = serialPortSocketFactory.open(SERIAL_PORT_NAME);
-            LoggingSerialPortSocket lport = LoggingSerialPortSocket.wrapWithHexOutputStream(port,
-                    new FileOutputStream("owapi-ng.log"), false, TimeStampLogging.UTC);
+        ServiceLoader<SerialPortSocketFactory> spsFactory = ServiceLoader.load(SerialPortSocketFactory.class);
+        SerialPortSocketFactory serialPortSocketFactory = spsFactory.iterator().next();
+        System.out.println("serialPortSocketFactory " + serialPortSocketFactory.getClass().getName());
+        final SerialPortSocket port = serialPortSocketFactory.open(SERIAL_PORT_NAME);
+        LoggingSerialPortSocket lport = LoggingSerialPortSocket.wrapWithHexOutputStream(port,
+                new FileOutputStream("owapi-ng.log"), false, TimeStampLogging.UTC);
 
-            adapter = new AdapterFactory().open(lport, 1);
-                System.err.print("Addresses:");
-                adapter.searchDevices((OneWireContainer owc) -> {
-                    System.err.append(' ').append(owc.getAddressAsString());
-                    for (long l : TESTABLE_CONTAINERS) {
-                        if (l == owc.getAddress()) {
-                            containers.add((MemoryBankContainer)owc);
-                        }
-                    }
-                });
-                System.err.println();
+        adapter = new AdapterFactory().open(lport, 1);
+        System.err.print("Addresses:");
+        adapter.searchDevices((OneWireContainer owc) -> {
+            System.err.append(' ').append(owc.getAddressAsString());
+            for (long l : TESTABLE_CONTAINERS) {
+                if (l == owc.getAddress()) {
+                    containers.add((MemoryBankContainer) owc);
+                }
+            }
+        });
+        System.err.println();
     }
-    
+
     @AfterEach
     public void tearDown() throws Exception {
         adapter.close();
@@ -95,25 +95,23 @@ public class MemoryBankContainerTest {
     @org.junit.jupiter.api.Test
     public void testWriteToMemory() throws Exception {
         System.out.println("writeMemory");
-        byte data[] = new byte[] {0x11, 0x48, 0x02, 0x03, 0x04, 0x05, 0x60, (byte)0xf0};
-        for (MemoryBankContainer mbc: containers) {
+        byte data[] = new byte[]{0x11, 0x48, 0x02, 0x03, 0x04, 0x05, 0x60, (byte) 0xf0};
+        for (MemoryBankContainer mbc : containers) {
             Assertions.assertTrue(mbc.writeToMemory(adapter, 0x0008, data, 0, data.length), "Unsuccessful write to memory");
             Assertions.assertArrayEquals(data, mbc.readMemory(adapter, 0x0008, 8));
         }
     }
 
-    
     /**
      * Test of writeToMemory method, of class MemoryBankContainer.
      */
     @org.junit.jupiter.api.Test
     public void testReadMemory() throws Exception {
         System.out.println("readMemory");
-        for (MemoryBankContainer mbc: containers) {
+        for (MemoryBankContainer mbc : containers) {
             byte[] data = mbc.readMemory(adapter, 0x00, 8);
             Assertions.assertEquals(8, data.length);
         }
     }
 
-    
 }

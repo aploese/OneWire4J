@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -34,19 +34,28 @@ public enum SerialPortSpeed {
     SPS_19_2_I,
     SPS_57_6_I,
     SPS_115_2_I;
-    
+
     @Override
-	public String toString() {
+    public String toString() {
         switch (this) {
-            case SPS_9_6: return "9600 bps";
-            case SPS_19_2: return "19200 bps";
-            case SPS_57_6: return "57600 bps";
-            case SPS_115_2: return "115200 bps";
-            case SPS_9_6_I: return "9600 bps (inverted)";
-            case SPS_19_2_I: return "19200 bps (inverted)";
-            case SPS_57_6_I: return "57600 bps (inverted)";
-            case SPS_115_2_I: return "115200 bps (inverted)";
-            default: throw new IllegalArgumentException("cant ahndle value: " + name());
+            case SPS_9_6:
+                return "9600 bps";
+            case SPS_19_2:
+                return "19200 bps";
+            case SPS_57_6:
+                return "57600 bps";
+            case SPS_115_2:
+                return "115200 bps";
+            case SPS_9_6_I:
+                return "9600 bps (inverted)";
+            case SPS_19_2_I:
+                return "19200 bps (inverted)";
+            case SPS_57_6_I:
+                return "57600 bps (inverted)";
+            case SPS_115_2_I:
+                return "115200 bps (inverted)";
+            default:
+                throw new IllegalArgumentException("cant ahndle value: " + name());
         }
     }
 }

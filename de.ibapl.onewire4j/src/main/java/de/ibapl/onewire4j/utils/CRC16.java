@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -35,16 +35,16 @@ public class CRC16 {
                 true, false, false, true, false, true, true, false};
 
     private short currentCrc16;
-    
+
     public CRC16() {
         currentCrc16 = DEFAULT_SEED;
     }
-    
+
     public short crc16(byte dataToCrc) {
         short dat = (short) ((dataToCrc ^ currentCrc16) & 0x00FF);
 
         currentCrc16 >>>= 8; //seed is promoted to int, and therefor this behaves like the >> operatur
-        currentCrc16 &= 0xff; //so we must clean the upper bits after the shift... (see jls-5.6.1-100-C) 
+        currentCrc16 &= 0xff; //so we must clean the upper bits after the shift... (see jls-5.6.1-100-C)
 
         if (ODD_PARITY[(dat & 0x0F)] ^ ODD_PARITY[(dat >>> 4)]) {
             currentCrc16 ^= 0xC001;
@@ -95,7 +95,6 @@ public class CRC16 {
         this.currentCrc16 = seed;
     }
 
-    
     public void resetCurrentCrc16() {
         currentCrc16 = DEFAULT_SEED;
     }

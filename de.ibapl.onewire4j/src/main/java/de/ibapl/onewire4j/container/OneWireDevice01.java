@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -25,11 +25,11 @@ package de.ibapl.onewire4j.container;
  *
  * @author Arne Plöse
  */
-@DeviceInfo(oneWireName="DS2401,DS1420,DS2411", iButtonName="DS1990A")
+@DeviceInfo(oneWireName = "DS2401,DS1420,DS2411", iButtonName = "DS1990A")
 public class OneWireDevice01 extends OneWireDevice {
 
-	public OneWireDevice01(long address) {
-		super(address);
-	}
+    public OneWireDevice01(long address) {
+        super(address);
+    }
 
 }

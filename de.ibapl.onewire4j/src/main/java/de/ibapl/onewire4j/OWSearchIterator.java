@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -25,81 +25,81 @@ import java.util.Arrays;
 
 import de.ibapl.onewire4j.request.data.RawDataRequest;
 
-
 /**
  *
  * @author Arne Plöse
  */
 public class OWSearchIterator {
-		private int searchLastDiscrepancy = 0xFF;
 
-		private boolean searchFinished;
+    private int searchLastDiscrepancy = 0xFF;
 
-		private long addr;
+    private boolean searchFinished;
 
-		public void interpretSearch(final RawDataRequest searchCommandData) {
+    private long addr;
 
-			addr = 0;
-			// set the temp Last Descrep to none
-			int temp_last_descrepancy = 0xFF;
+    public void interpretSearch(final RawDataRequest searchCommandData) {
 
-			// interpret the search response sequence
-			for (int i = 0; i < 64; i++) {
-				final boolean discrepancyFlag = bitRead(searchCommandData.response, i * 2);
-				final boolean choosenPathFlag = bitRead(searchCommandData.response, i * 2 + 1);
+        addr = 0;
+        // set the temp Last Descrep to none
+        int temp_last_descrepancy = 0xFF;
 
-				// get the SerialNum bit
-				if (choosenPathFlag) {
-					addr |= 1L << i;
-				}
+        // interpret the search response sequence
+        for (int i = 0; i < 64; i++) {
+            final boolean discrepancyFlag = bitRead(searchCommandData.response, i * 2);
+            final boolean choosenPathFlag = bitRead(searchCommandData.response, i * 2 + 1);
 
-				// check LastDiscrepancy
-				if (discrepancyFlag && !choosenPathFlag) {
-					temp_last_descrepancy = i + 1;
-				}
-			}
+            // get the SerialNum bit
+            if (choosenPathFlag) {
+                addr |= 1L << i;
+            }
 
-			if (temp_last_descrepancy == 63) {
-				throw new RuntimeException("Error Nothnig found");
-			}
-			// check for the last one
-			if ((temp_last_descrepancy == searchLastDiscrepancy) || (temp_last_descrepancy == 0xFF)) {
-				searchFinished = true;
-			}
+            // check LastDiscrepancy
+            if (discrepancyFlag && !choosenPathFlag) {
+                temp_last_descrepancy = i + 1;
+            }
+        }
 
-			// set the count
-			searchLastDiscrepancy = temp_last_descrepancy;
+        if (temp_last_descrepancy == 63) {
+            throw new RuntimeException("Error Nothnig found");
+        }
+        // check for the last one
+        if ((temp_last_descrepancy == searchLastDiscrepancy) || (temp_last_descrepancy == 0xFF)) {
+            searchFinished = true;
+        }
 
-			// only modify bits if not the first search
-			if (searchLastDiscrepancy != 0xFF) {
-				Arrays.fill(searchCommandData.requestData, (byte) 0);
+        // set the count
+        searchLastDiscrepancy = temp_last_descrepancy;
 
-				// set the bits in the added buffer
-				for (int i = 0; i < searchLastDiscrepancy - 1; i++) {
-					// before last discrepancy: go direction based on ID choosenPathFlag in response
-					if (bitRead(searchCommandData.response, i * 2 + 1)) {
-						setBit(searchCommandData.requestData, (i * 2 + 1));
-					}
-				}
-				// at last discrepancy (go 1's direction) the rest are zeros
-				setBit(searchCommandData.requestData, ((searchLastDiscrepancy - 1) * 2 + 1));
-			}
-		}
+        // only modify bits if not the first search
+        if (searchLastDiscrepancy != 0xFF) {
+            Arrays.fill(searchCommandData.requestData, (byte) 0);
 
-		private boolean bitRead(final byte[] bitBuffer, final int address) {
-			return ((bitBuffer[address / 8] >> address % 8) & 0x01) == 0x01;
-		}
+            // set the bits in the added buffer
+            for (int i = 0; i < searchLastDiscrepancy - 1; i++) {
+                // before last discrepancy: go direction based on ID choosenPathFlag in response
+                if (bitRead(searchCommandData.response, i * 2 + 1)) {
+                    setBit(searchCommandData.requestData, (i * 2 + 1));
+                }
+            }
+            // at last discrepancy (go 1's direction) the rest are zeros
+            setBit(searchCommandData.requestData, ((searchLastDiscrepancy - 1) * 2 + 1));
+        }
+    }
 
-		private void setBit(final byte[] bitBuffer, final int address) {
-			bitBuffer[address / 8] |= 0x01 << address % 8;
-		}
+    private boolean bitRead(final byte[] bitBuffer, final int address) {
+        return ((bitBuffer[address / 8] >> address % 8) & 0x01) == 0x01;
+    }
 
-		public boolean isSearchFinished() {
-			return searchFinished;
-		}
+    private void setBit(final byte[] bitBuffer, final int address) {
+        bitBuffer[address / 8] |= 0x01 << address % 8;
+    }
 
-		public long getAddress() {
-			return addr;
-		}
+    public boolean isSearchFinished() {
+        return searchFinished;
+    }
+
+    public long getAddress() {
+        return addr;
+    }
 
 }

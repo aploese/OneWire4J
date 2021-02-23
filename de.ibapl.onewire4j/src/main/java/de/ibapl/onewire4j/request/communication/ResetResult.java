@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -26,8 +26,8 @@ package de.ibapl.onewire4j.request.communication;
  * @author Arne Plöse
  */
 public enum ResetResult {
-	_1_WIRE_SHORTED,
-	PRESENCE,
-	ALARM_PRESENCE,
-	NO_PRESENCE;
+    _1_WIRE_SHORTED,
+    PRESENCE,
+    ALARM_PRESENCE,
+    NO_PRESENCE;
 }

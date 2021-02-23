@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -27,6 +27,6 @@ import de.ibapl.onewire4j.request.CommandRequest;
  *
  * @author Arne Plöse
  */
-public abstract class ConfigurationRequest<R> extends CommandRequest<R>{
+public abstract class ConfigurationRequest<R> extends CommandRequest<R> {
 
 }

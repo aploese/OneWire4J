@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -25,19 +25,19 @@ package de.ibapl.onewire4j.request.configuration;
  *
  * @author Arne Plöse
  */
-public class ConfigurationReadRequest<R>  extends ConfigurationRequest<R>{
+public class ConfigurationReadRequest<R> extends ConfigurationRequest<R> {
 
     public static ConfigurationReadRequest<?> of(CommandType commandTypes) {
         final ConfigurationReadRequest<?> result = new ConfigurationReadRequest<>();
         result.commandType = commandTypes;
         return result;
     }
-    
+
     public CommandType commandType;
 
     @Override
     public int responseSize(StrongPullupDuration spd) {
         return 1;
     }
- 
+
 }

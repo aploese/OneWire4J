@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -23,15 +23,16 @@ package de.ibapl.onewire4j.utils;
 
 /**
  * Utility class for CRC8 check sums.
- * 
- * See <a href="https://www.maximintegrated.com/en/design/technical-documents/app-notes/2/27.html">Application Note 27</a>
+ *
+ * See
+ * <a href="https://www.maximintegrated.com/en/design/technical-documents/app-notes/2/27.html">Application
+ * Note 27</a>
  *
  * @author Arne Plöse
  */
 public class CRC8 {
-    
+
     public final static byte CRC8_OF_SEEDS_ONE_COMPLEMENT = 0x35;
-    
 
     private final static byte[] CRC8_LOOKUP = new byte[]{0x00, 0x5e, (byte) 0xbc,
         (byte) 0xe2, 0x61, 0x3f, (byte) 0xdd, (byte) 0x83, (byte) 0xc2,
@@ -92,6 +93,7 @@ public class CRC8 {
 
     /**
      * Calculates the CRC8 of the array, seed is 0.
+     *
      * @param data the bytearray to compute the CRC8 from.
      * @return the CRC8 value.
      */
@@ -105,6 +107,7 @@ public class CRC8 {
 
     /**
      * Calculates the CRC8 of the byte with given seed.
+     *
      * @param data the bytearray to compute the CRC8 from.
      * @param seed the seed to use.
      * @return the CRC8 value.
@@ -115,6 +118,7 @@ public class CRC8 {
 
     /**
      * Calculates the CRC8 of the subarray with given seed.
+     *
      * @param data the bytearray to compute the CRC8 from.
      * @param off the offset to start from.
      * @param len the length.

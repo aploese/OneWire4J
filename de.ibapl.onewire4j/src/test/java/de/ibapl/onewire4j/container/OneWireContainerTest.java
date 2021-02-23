@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -32,10 +32,10 @@ import org.junit.jupiter.api.Test;
  * @author Arne Plöse
  */
 public class OneWireContainerTest {
-    
+
     public OneWireContainerTest() {
     }
-    
+
     /**
      * Test of isAsddressValid method, of class OneWireContainer.
      */
@@ -51,7 +51,6 @@ public class OneWireContainerTest {
         assertTrue(OneWireContainer.isAsddressValid(0x970008016fdcd010L));
     }
 
-        
     /**
      * Test of addressToString method, of class OneWireContainer.
      */
@@ -70,7 +69,7 @@ public class OneWireContainerTest {
     public void testArrayOfLong() {
         System.out.println("arrayOfLong");
         long address = 0L;
-        byte[] expResult = new byte[] {(byte)0x10, (byte)0x21, (byte)0xf5, (byte)0x35, (byte)0x03, (byte)0x08, (byte)0x00, (byte)0x55 };
+        byte[] expResult = new byte[]{(byte) 0x10, (byte) 0x21, (byte) 0xf5, (byte) 0x35, (byte) 0x03, (byte) 0x08, (byte) 0x00, (byte) 0x55};
         byte[] result = OneWireContainer.arrayOfAddress(0x5500080335f52110L);
         assertArrayEquals(expResult, result);
     }
@@ -81,19 +80,19 @@ public class OneWireContainerTest {
     @Test
     public void testAddressOf() {
         System.out.println("addressOf");
-        byte[] address = new byte[] {(byte)0x10, (byte)0x21, (byte)0xf5, (byte)0x35, (byte)0x03, (byte)0x08, (byte)0x00, (byte)0x55 };
+        byte[] address = new byte[]{(byte) 0x10, (byte) 0x21, (byte) 0xf5, (byte) 0x35, (byte) 0x03, (byte) 0x08, (byte) 0x00, (byte) 0x55};
         long expResult = 0x5500080335f52110L;
         long result = OneWireContainer.addressOf(address);
         assertEquals(expResult, result);
     }
-    
+
     @Test
     public void testAddress_f8000001ab449128() {
-        
+
         System.out.println("testAddress_f8000001ab449128");
         long expResult = 0xf8000001ab449128L;
         long result = Long.parseUnsignedLong("f8000001ab449128", 16);
         assertEquals(expResult, result);
     }
-    
+
 }

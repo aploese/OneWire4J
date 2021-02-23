@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -25,29 +25,29 @@ package de.ibapl.onewire4j.request.configuration;
  *
  * @author Arne Plöse
  */
-public class ConfigurationWriteRequest<R>  extends ConfigurationRequest<R>{
+public class ConfigurationWriteRequest<R> extends ConfigurationRequest<R> {
 
-    public static ConfigurationWriteRequest<PullDownSlewRateParam> of (PullDownSlewRateParam pullDownSlewRateParam) {
+    public static ConfigurationWriteRequest<PullDownSlewRateParam> of(PullDownSlewRateParam pullDownSlewRateParam) {
         final ConfigurationWriteRequest<PullDownSlewRateParam> result = new ConfigurationWriteRequest<>();
         result.commandType = CommandType.PDSRC;
         result.propertyValue = pullDownSlewRateParam;
         return result;
     }
 
-    public static ConfigurationWriteRequest<ProgrammingPulseDuration> of (ProgrammingPulseDuration programmingPulseDuration) {
+    public static ConfigurationWriteRequest<ProgrammingPulseDuration> of(ProgrammingPulseDuration programmingPulseDuration) {
         final ConfigurationWriteRequest<ProgrammingPulseDuration> result = new ConfigurationWriteRequest<>();
-        result.commandType =CommandType.PPD;
+        result.commandType = CommandType.PPD;
         result.propertyValue = programmingPulseDuration;
         return result;
     }
-    
-    public static ConfigurationWriteRequest<StrongPullupDuration> of (StrongPullupDuration strongPullupDuration) {
+
+    public static ConfigurationWriteRequest<StrongPullupDuration> of(StrongPullupDuration strongPullupDuration) {
         final ConfigurationWriteRequest<StrongPullupDuration> result = new ConfigurationWriteRequest<>();
-        result.commandType =CommandType.SPUD;
+        result.commandType = CommandType.SPUD;
         result.propertyValue = strongPullupDuration;
         return result;
     }
-    
+
     public static ConfigurationWriteRequest<Write1LowTime> of(Write1LowTime write1LowTime) {
         final ConfigurationWriteRequest<Write1LowTime> result = new ConfigurationWriteRequest<>();
         result.commandType = CommandType.W1LT;
@@ -61,7 +61,7 @@ public class ConfigurationWriteRequest<R>  extends ConfigurationRequest<R>{
         result.propertyValue = dataSampleOffsetAndWrite0RecoveryTime;
         return result;
     }
-    
+
     public static ConfigurationWriteRequest<LoadSensorThreshold> of(LoadSensorThreshold loadSensorThreshold) {
         final ConfigurationWriteRequest<LoadSensorThreshold> result = new ConfigurationWriteRequest<>();
         result.commandType = CommandType.LST;

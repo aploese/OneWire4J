@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -92,8 +92,8 @@ public class Main {
                 adapter.searchDevices((OneWireContainer owc) -> {
                     owcs.add(owc);
                     try {
-                    log.write((byte) '\t');
-                    log.write(owc.getAddressAsString().getBytes());
+                        log.write((byte) '\t');
+                        log.write(owc.getAddressAsString().getBytes());
                     } catch (IOException ioe) {
                         throw new RuntimeException(ioe);
                     }

@@ -100,12 +100,12 @@
             <dependency>
                 <groupId>de.ibapl.spsw</groupId>
                 <artifactId>de.ibapl.spsw.api</artifactId>
-                <version>3.0.0-SNAPSHOT</version>
+                <version>[3.0.0,4.0.0)</version>
             </dependency>
             <dependency>
                 <groupId>de.ibapl.spsw</groupId>
                 <artifactId>de.ibapl.spsw.jnhwprovider</artifactId>
-                <version>3.0.0-SNAPSHOT</version>
+                <version>[3.0.0,4.0.0)</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -250,7 +250,7 @@
                     <aggregate>true</aggregate>
                     <strictCheck>true</strictCheck>
                     <properties>
-                        <copyright-range>${project.inceptionYear}-2019</copyright-range>
+                        <copyright-range>${project.inceptionYear}-2021</copyright-range>
                     </properties>
                 </configuration>
                 <executions>

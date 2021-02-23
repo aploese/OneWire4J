@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -35,114 +35,115 @@ import de.ibapl.onewire4j.utils.CRC8;
  * @author Arne Plöse
  */
 public interface TemperatureContainer extends OneWireContainer {
-    
+
     public class ReadScratchpadRequest extends DataRequestWithDeviceCommand {
-        
+
         public ReadScratchpadRequest() {
             super(READ_SCRATCHPAD_CMD, 0, 9);
         }
-        
+
     }
 
-	@OneWireDataCommand
-	public final byte READ_POWER_SUPPLY_CMD = (byte) 0xb4;
+    @OneWireDataCommand
+    public final byte READ_POWER_SUPPLY_CMD = (byte) 0xb4;
 
-	@OneWireDataCommand
-	public final byte CONVERT_TEMPERATURE_CMD = (byte) 0x44;
+    @OneWireDataCommand
+    public final byte CONVERT_TEMPERATURE_CMD = (byte) 0x44;
 
-      	@OneWireDataCommand
-	public final static byte READ_SCRATCHPAD_CMD = (byte)0xbe;
+    @OneWireDataCommand
+    public final static byte READ_SCRATCHPAD_CMD = (byte) 0xbe;
 
-	/**
-	 * Sends convert to all devices....
-	 */
-	public static Instant sendDoConvertRequestToAll(OneWireAdapter adapter, boolean parasitePowerNeeded)
-			throws IOException {
-		adapter.sendSkipRomRequest();
-		final Instant ts = Instant.now();
+    /**
+     * Sends convert to all devices....
+     */
+    public static Instant sendDoConvertRequestToAll(OneWireAdapter adapter, boolean parasitePowerNeeded)
+            throws IOException {
+        adapter.sendSkipRomRequest();
+        final Instant ts = Instant.now();
 
-		if (parasitePowerNeeded) {
-			adapter.sendByteWithPower(CONVERT_TEMPERATURE_CMD, StrongPullupDuration.SPUD_POSITIVE_INFINITY,
-					adapter.getSpeedFromBaudrate());
-			try {
-				Thread.sleep(750);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-			adapter.sendTerminatePulse();
-		} else {
-			adapter.sendCommand(new DataRequestWithDeviceCommand(CONVERT_TEMPERATURE_CMD, 0, 0));
-			final ReadBytesRequest r = new ReadBytesRequest(0, 1);
-			while (adapter.sendCommand(r)[0] != (byte) 0xff) {
-				r.resetState();
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException  e) {
-					//no-op
-				}
-			}
-		}
-		return ts;
-	}
+        if (parasitePowerNeeded) {
+            adapter.sendByteWithPower(CONVERT_TEMPERATURE_CMD, StrongPullupDuration.SPUD_POSITIVE_INFINITY,
+                    adapter.getSpeedFromBaudrate());
+            try {
+                Thread.sleep(750);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            adapter.sendTerminatePulse();
+        } else {
+            adapter.sendCommand(new DataRequestWithDeviceCommand(CONVERT_TEMPERATURE_CMD, 0, 0));
+            final ReadBytesRequest r = new ReadBytesRequest(0, 1);
+            while (adapter.sendCommand(r)[0] != (byte) 0xff) {
+                r.resetState();
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    //no-op
+                }
+            }
+        }
+        return ts;
+    }
 
-	/**
-	 * Returns true if at least one temperature device needs parasite power.
-	 * If at least one device needs parasite power one can not do a bulk conversation and one must the slower device by device approach.
-	 * 
-	 * @param adapter
-	 * @return
-	 * @throws IOException
-	 */
-	public static boolean isParasitePower(OneWireAdapter adapter) throws IOException {
-		adapter.sendSkipRomRequest();
-		
-                //TODO new format ... is available
-		DataRequestWithDeviceCommand readPowerSupplyRequest = new DataRequestWithDeviceCommand(READ_POWER_SUPPLY_CMD, 0, 1);
-		adapter.sendCommand(readPowerSupplyRequest);
-		return readPowerSupplyRequest.response[0] != (byte) 0xff;
-	}
+    /**
+     * Returns true if at least one temperature device needs parasite power. If
+     * at least one device needs parasite power one can not do a bulk
+     * conversation and one must the slower device by device approach.
+     *
+     * @param adapter
+     * @return
+     * @throws IOException
+     */
+    public static boolean isParasitePower(OneWireAdapter adapter) throws IOException {
+        adapter.sendSkipRomRequest();
 
-	default void sendDoConvertRequest(OneWireAdapter adapter) throws IOException {
-		adapter.sendMatchRomRequest(getAddress());
+        //TODO new format ... is available
+        DataRequestWithDeviceCommand readPowerSupplyRequest = new DataRequestWithDeviceCommand(READ_POWER_SUPPLY_CMD, 0, 1);
+        adapter.sendCommand(readPowerSupplyRequest);
+        return readPowerSupplyRequest.response[0] != (byte) 0xff;
+    }
 
-		adapter.sendByteWithPower(CONVERT_TEMPERATURE_CMD, StrongPullupDuration.SPUD_POSITIVE_INFINITY,
-				adapter.getSpeedFromBaudrate());
+    default void sendDoConvertRequest(OneWireAdapter adapter) throws IOException {
+        adapter.sendMatchRomRequest(getAddress());
 
-		try {
-			Thread.sleep(750);
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-		adapter.sendTerminatePulse();
-		// TODO READ Bit???
-		byte b = adapter.sendReadByteRequest();
-		if ((b & 0xff) != 0xFF) {
-			throw new RuntimeException();
-		}
-	}
+        adapter.sendByteWithPower(CONVERT_TEMPERATURE_CMD, StrongPullupDuration.SPUD_POSITIVE_INFINITY,
+                adapter.getSpeedFromBaudrate());
 
-	default void readScratchpad(OneWireAdapter adapter, ReadScratchpadRequest request) throws IOException {
-		adapter.sendMatchRomRequest(getAddress());
-		adapter.sendCommand(request.resetState());
-		if (CRC8.crc8(request.response) != 0) {
-			throw new IOException("CRC mismatch");
-		}
-	}
+        try {
+            Thread.sleep(750);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        adapter.sendTerminatePulse();
+        // TODO READ Bit???
+        byte b = adapter.sendReadByteRequest();
+        if ((b & 0xff) != 0xFF) {
+            throw new RuntimeException();
+        }
+    }
 
-	default double convertAndReadTemperature(OneWireAdapter adapter)
-			throws IOException, ENotProperlyConvertedException {
-		final ReadScratchpadRequest request = new ReadScratchpadRequest();
-		sendDoConvertRequest(adapter);
-		readScratchpad(adapter, request);
-		return getTemperature(request);
-	}
+    default void readScratchpad(OneWireAdapter adapter, ReadScratchpadRequest request) throws IOException {
+        adapter.sendMatchRomRequest(getAddress());
+        adapter.sendCommand(request.resetState());
+        if (CRC8.crc8(request.response) != 0) {
+            throw new IOException("CRC mismatch");
+        }
+    }
 
-	default double getTemperature(ReadScratchpadRequest request) throws ENotProperlyConvertedException {
-		return request.response[2];
-	}
+    default double convertAndReadTemperature(OneWireAdapter adapter)
+            throws IOException, ENotProperlyConvertedException {
+        final ReadScratchpadRequest request = new ReadScratchpadRequest();
+        sendDoConvertRequest(adapter);
+        readScratchpad(adapter, request);
+        return getTemperature(request);
+    }
 
-	default double getAlarmTempLowerLimit(ReadScratchpadRequest request) throws ENotProperlyConvertedException {
-		return request.response[3];
-	}
+    default double getTemperature(ReadScratchpadRequest request) throws ENotProperlyConvertedException {
+        return request.response[2];
+    }
+
+    default double getAlarmTempLowerLimit(ReadScratchpadRequest request) throws ENotProperlyConvertedException {
+        return request.response[3];
+    }
 
 }

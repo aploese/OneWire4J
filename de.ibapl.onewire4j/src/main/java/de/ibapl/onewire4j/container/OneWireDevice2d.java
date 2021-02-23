@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -28,11 +28,11 @@ import java.io.IOException;
  *
  * @author Arne Plöse
  */
-@DeviceInfo(oneWireName="DS2431", iButtonName="DS1972")
+@DeviceInfo(oneWireName = "DS2431", iButtonName = "DS1972")
 public class OneWireDevice2d extends OneWireDevice implements MemoryBankContainer {
 
-	public OneWireDevice2d(long address) {
-		super(address);
-	}
+    public OneWireDevice2d(long address) {
+        super(address);
+    }
 
 }

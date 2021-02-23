@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -26,13 +26,21 @@ package de.ibapl.onewire4j.request;
  * @author Arne Plöse
  */
 public enum OneWireLevel {
-   /** 1-Wire Network level, normal (weak 5Volt pullup)                            */
-   NORMAL, // = (char)0;
-   /** 1-Wire Network level, (strong 5Volt pullup, used for power delivery) */
-   POWER_DELIVERY, // = (char)1;
-   /** 1-Wire Network level, (strong pulldown to 0Volts, reset 1-Wire)      */
-   BREAK,//  = (char)2;
-   /** 1-Wire Network level, (strong 12Volt pullup, used to program eprom ) */
-   PROGRAM; // = (char)3;
+    /**
+     * 1-Wire Network level, normal (weak 5Volt pullup)
+     */
+    NORMAL, // = (char)0;
+    /**
+     * 1-Wire Network level, (strong 5Volt pullup, used for power delivery)
+     */
+    POWER_DELIVERY, // = (char)1;
+    /**
+     * 1-Wire Network level, (strong pulldown to 0Volts, reset 1-Wire)
+     */
+    BREAK,//  = (char)2;
+    /**
+     * 1-Wire Network level, (strong 12Volt pullup, used to program eprom )
+     */
+    PROGRAM; // = (char)3;
 
 }

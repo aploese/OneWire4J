@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -35,14 +35,14 @@ public enum Write1LowTime {
     W1LT_14(14),
     W1LT_15(15);
     public final byte value;
-    
+
     private Write1LowTime(final int value) {
-        this.value = (byte)value;
+        this.value = (byte) value;
     }
-    
+
     @Override
-	public String toString() {
+    public String toString() {
         return value + " µs";
     }
-    
+
 }

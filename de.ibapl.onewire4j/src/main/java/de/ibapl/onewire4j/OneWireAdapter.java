@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2019, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2021, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -32,66 +32,63 @@ import de.ibapl.onewire4j.request.communication.ResetDeviceResponse;
 import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
 
 /**
- * 
+ *
  * @author Arne Plöse
  */
 public interface OneWireAdapter extends AutoCloseable {
 
-	/**
-	 * Returns the open state of the serial port.
-	 * 
-	 * @return true if open.
-	 */
-	boolean isOpen();
+    /**
+     * Returns the open state of the serial port.
+     *
+     * @return true if open.
+     */
+    boolean isOpen();
 
-	/**
-	 * Search devices connected to the OneWire bus. If a device is found, the
-	 * {@linkplain LongConsumer#accept(long)} is called with the address.
-	 * This avoids the consrtuction of an {@linkplain OneWireContainer}.
-	 * 
-	 * @param longConsumer
-	 *            the functional interface which accept method to call.
-	 * @throws IOException
-	 *             if an error happens.
-	 */
-	void searchDevices(LongConsumer longConsumer) throws IOException;
+    /**
+     * Search devices connected to the OneWire bus. If a device is found, the
+     * {@linkplain LongConsumer#accept(long)} is called with the address. This
+     * avoids the consrtuction of an {@linkplain OneWireContainer}.
+     *
+     * @param longConsumer the functional interface which accept method to call.
+     * @throws IOException if an error happens.
+     */
+    void searchDevices(LongConsumer longConsumer) throws IOException;
 
-	/**
-	 * Search devices connected to the OneWire bus. If a device is found, the
-	 * {@linkplain Consumer#accept(Object)} is called with the {@linkplain OneWireContainer}.
-	 * 
-	 * @param consumer
-	 *            the functional interface which accept method to call.
-	 * @throws IOException
-	 *             if an error happens.
-	 */
-	void searchDevices(Consumer<OneWireContainer> consumer) throws IOException;
+    /**
+     * Search devices connected to the OneWire bus. If a device is found, the
+     * {@linkplain Consumer#accept(Object)} is called with the
+     * {@linkplain OneWireContainer}.
+     *
+     * @param consumer the functional interface which accept method to call.
+     * @throws IOException if an error happens.
+     */
+    void searchDevices(Consumer<OneWireContainer> consumer) throws IOException;
 
-	/**
-	 * Returns the current {@linkplain OneWireSpeed}.
-	 * 
-	 * @return the current {@linkplain OneWireSpeed}.
-	 */
-	OneWireSpeed getSpeedFromBaudrate();
+    /**
+     * Returns the current {@linkplain OneWireSpeed}.
+     *
+     * @return the current {@linkplain OneWireSpeed}.
+     */
+    OneWireSpeed getSpeedFromBaudrate();
 
-	void sendMatchRomRequest(long address) throws IOException;
+    void sendMatchRomRequest(long address) throws IOException;
 
-	ResetDeviceResponse sendReset() throws IOException;
+    ResetDeviceResponse sendReset() throws IOException;
 
-	byte[] sendRawDataRequest(byte[] data) throws IOException;
+    byte[] sendRawDataRequest(byte[] data) throws IOException;
 
-	byte sendByteWithPower(byte b, StrongPullupDuration strongPullupDuration, OneWireSpeed speed) throws IOException;
+    byte sendByteWithPower(byte b, StrongPullupDuration strongPullupDuration, OneWireSpeed speed) throws IOException;
 
-	byte sendByte(byte b, OneWireSpeed speed) throws IOException;
+    byte sendByte(byte b, OneWireSpeed speed) throws IOException;
 
-	<R> R sendCommand(OneWireRequest<R> request) throws IOException;
+    <R> R sendCommand(OneWireRequest<R> request) throws IOException;
 
-	void sendCommands(OneWireRequest<?>... requests) throws IOException;
+    void sendCommands(OneWireRequest<?>... requests) throws IOException;
 
-	Byte sendTerminatePulse() throws IOException;
+    Byte sendTerminatePulse() throws IOException;
 
-	byte[] sendSkipRomRequest() throws IOException;
+    byte[] sendSkipRomRequest() throws IOException;
 
-	byte sendReadByteRequest() throws IOException;
+    byte sendReadByteRequest() throws IOException;
 
 }
