@@ -62,7 +62,6 @@ import de.ibapl.spsw.api.Parity;
 import de.ibapl.spsw.api.SerialPortSocket;
 import de.ibapl.spsw.api.Speed;
 import de.ibapl.spsw.api.StopBits;
-import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -84,6 +83,7 @@ public class DS2480BAdapter implements OneWireAdapter {
     private final SerialPortSocket serialPort;
     private OneWireSpeed speedFromBaudrate = OneWireSpeed.FLEX;
     private State state = State.UNKNOWN;
+    public final static int DEFAULT_BUFFER_SIZE = 1024;
 
     /**
      * Creates a new instance ans sets the SerialPortSocket to use.
@@ -102,8 +102,8 @@ public class DS2480BAdapter implements OneWireAdapter {
             serialPort.setParity(Parity.NONE);
             serialPort.setFlowControl(FlowControl.getFC_NONE());
             serialPort.setTimeouts(100, 1000, 1000);
-            encoder = new Encoder(ByteBuffer.allocateDirect(64));
-            decoder = new Decoder(ByteBuffer.allocateDirect(64));
+            encoder = new Encoder(ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE));
+            decoder = new Decoder(ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE));
             init();
         } catch (Exception e) {
             //Clean up
@@ -168,15 +168,15 @@ public class DS2480BAdapter implements OneWireAdapter {
     }
 
     @Override
-    public void searchDevices(LongConsumer longConsumer) throws IOException {
+    public void searchDevices(byte searchCommand, LongConsumer longConsumer) throws IOException {
         final OWSearchIterator searchIterator = new OWSearchIterator();
         byte[] data = new byte[16];
         Arrays.fill(data, (byte) 0);
         final RawDataRequest searchCommandData = new RawDataRequest(data);
-        final SearchCommand searchCommand = new SearchCommand();
+        final SearchCommand searchCmd = new SearchCommand(searchCommand);
         while (!searchIterator.isSearchFinished()) {
             sendCommand(ResetDeviceRequest.of(speedFromBaudrate));
-            sendCommands(searchCommand.resetState(),
+            sendCommands(searchCmd.resetState(),
                     SearchAcceleratorCommand.of(SearchAccelerator.ON, speedFromBaudrate),
                     searchCommandData.resetState(),
                     SearchAcceleratorCommand.of(SearchAccelerator.OFF, speedFromBaudrate));
@@ -196,8 +196,8 @@ public class DS2480BAdapter implements OneWireAdapter {
     }
 
     @Override
-    public void searchDevices(Consumer<OneWireContainer> consumer) throws IOException {
-        searchDevices((long address) -> {
+    public void searchDevices(byte searchCommand, Consumer<OneWireContainer> consumer) throws IOException {
+        searchDevices(searchCommand, (long address) -> {
             final OneWireDevice device = OneWireDevice.fromAdress(address);
             try {
                 device.init(this);
@@ -326,7 +326,7 @@ public class DS2480BAdapter implements OneWireAdapter {
     public void sendMatchRomRequest(long address) throws IOException {
         sendReset();
         final DataRequestWithDeviceCommand request = new DataRequestWithDeviceCommand(Encoder.MATCH_ROM_CMD,
-                OneWireContainer.arrayOfAddress(address), new byte[OneWireContainer.ADDRESS_SIZE]);
+                OneWireContainer.arrayOfAddress(address));
         sendCommand(request);
 
         long result = OneWireContainer.addressOf(request.response);
@@ -342,7 +342,9 @@ public class DS2480BAdapter implements OneWireAdapter {
 
     @Override
     public byte sendReadByteRequest() throws IOException {
-        return sendCommand(new ReadBytesRequest(0, 1))[0];
+        ReadBytesRequest r = new ReadBytesRequest(1);
+        sendCommand(r);
+        return r.responseReadData[0];
     }
 
     @Override

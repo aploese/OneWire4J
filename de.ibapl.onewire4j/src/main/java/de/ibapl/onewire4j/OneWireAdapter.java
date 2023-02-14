@@ -45,24 +45,26 @@ public interface OneWireAdapter extends AutoCloseable {
     boolean isOpen();
 
     /**
-     * Search devices connected to the OneWire bus. If a device is found, the
+     * Search devices connected to the OneWire bus.If a device is found, the
      * {@linkplain LongConsumer#accept(long)} is called with the address. This
      * avoids the consrtuction of an {@linkplain OneWireContainer}.
      *
+     * @param searchCommand
      * @param longConsumer the functional interface which accept method to call.
      * @throws IOException if an error happens.
      */
-    void searchDevices(LongConsumer longConsumer) throws IOException;
+    void searchDevices(byte searchCommand, LongConsumer longConsumer) throws IOException;
 
     /**
-     * Search devices connected to the OneWire bus. If a device is found, the
-     * {@linkplain Consumer#accept(Object)} is called with the
-     * {@linkplain OneWireContainer}.
+     * Search devices connected to the OneWire bus.If a device is found, the
+    {@linkplain Consumer#accept(Object)} is called with the
+    {@linkplain OneWireContainer}.
      *
+     * @param searchCommand
      * @param consumer the functional interface which accept method to call.
      * @throws IOException if an error happens.
      */
-    void searchDevices(Consumer<OneWireContainer> consumer) throws IOException;
+    void searchDevices(byte searchCommand, Consumer<OneWireContainer> consumer) throws IOException;
 
     /**
      * Returns the current {@linkplain OneWireSpeed}.

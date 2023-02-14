@@ -29,9 +29,14 @@ import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
  */
 public class SearchCommand extends DataRequest<Boolean> {
 
-    public SearchCommand() {
+    public final byte cmd;
+
+    public SearchCommand(byte cmd) {
         super(0);
+        this.cmd = cmd;
     }
+
+    public final static byte SEARCH_ROM = (byte) 0xf0;
 
     @Override
     public int responseSize(StrongPullupDuration spd) {

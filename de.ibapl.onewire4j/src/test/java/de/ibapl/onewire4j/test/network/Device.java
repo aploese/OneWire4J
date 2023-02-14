@@ -19,14 +19,14 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package de.ibapl.onewire4j.request;
-
-import de.ibapl.onewire4j.request.communication.PulseResponse;
+package de.ibapl.onewire4j.test.network;
 
 /**
  *
- * @author Arne Plöse
+ * @author aploese
  */
-public abstract class PulseTerminateRequest extends CommandRequest<PulseResponse> {
+public class Device {
 
+    public String address;
+    public String name;
 }

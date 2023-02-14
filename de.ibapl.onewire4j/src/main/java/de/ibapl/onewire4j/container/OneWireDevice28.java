@@ -26,21 +26,23 @@ package de.ibapl.onewire4j.container;
  * @author Arne Plöse
  */
 @DeviceInfo(oneWireName = "DS18B20,DS1820B,DS18B20X", iButtonName = "")
-public class OneWireDevice28 extends OneWireDevice implements TemperatureContainer {
+public class OneWireDevice28 extends OneWireDevice implements AlarmTemperatureContainer {
 
     public OneWireDevice28(long address) {
         super(address);
     }
 
     @Override
-    public double getTemperature(ReadScratchpadRequest request) throws ENotProperlyConvertedException {
-        final int intTemperature = (request.response[0] & 0xFF) | (request.response[1] << 8); // this converts 2 bytes into
-        if (intTemperature == 0x0550) {
-            // Sometimes 85°C appears maybe a hidden conversation error??
-            throw new ENotProperlyConvertedException(85);
-        }
+    public double getTemperature(ReadScratchpadRequest request) {
+        final int intTemperature = (request.responseReadData[1] << 8) | (request.responseReadData[0] & 0xFF); // this converts 2 bytes into int , request.response[1] carries the sign
         final double result = intTemperature / 16.0; // converts integer to a double
         return (result);
+    }
+
+    @Override
+    public boolean isTemperaturePowerOnResetValue(ReadScratchpadRequest request) {
+        final int intTemperature = (request.responseReadData[1] << 8) | (request.responseReadData[0] & 0xFF); // this converts 2 bytes into int , request.response[1] carries the sign
+        return intTemperature == 0x0550;
     }
 
 }

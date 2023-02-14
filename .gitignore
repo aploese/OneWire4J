@@ -15,4 +15,5 @@ nb-configuration.xml
 nbactions.xml
 .idea
 
-/de.ibapl.onewire4j/nbproject/
+de.ibapl.onewire4j/nbproject/
+de.ibapl.onewire4j/src/test/resources/junit-onewire4j-config.yaml

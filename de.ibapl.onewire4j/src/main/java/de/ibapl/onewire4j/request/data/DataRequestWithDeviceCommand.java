@@ -27,7 +27,7 @@ import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
  *
  * @author Arne Plöse
  */
-public class DataRequestWithDeviceCommand extends DataRequest<byte[]> {
+public class DataRequestWithDeviceCommand extends RawDataRequest {
 
     /**
      *
@@ -36,25 +36,25 @@ public class DataRequestWithDeviceCommand extends DataRequest<byte[]> {
      * @param readTimeSlots the readTimeSlots in bytes
      */
     public DataRequestWithDeviceCommand(byte command, int requestSize, int readTimeSlots) {
-        super(readTimeSlots);
-        this.command = command;
-        requestData = new byte[requestSize];
-        response = new byte[requestSize + readTimeSlots];
-    }
-
-    public DataRequestWithDeviceCommand(byte command, byte[] requestData, byte[] responseArray) {
-        super(responseArray.length - requestData.length);
-        this.requestData = requestData;
-        this.response = responseArray;
+        super(requestSize, readTimeSlots);
         this.command = command;
     }
 
-    public final byte[] requestData;
+    public DataRequestWithDeviceCommand(byte command, byte[] requestData, byte[] responseReadData) {
+        super(requestData, responseReadData);
+        this.command = command;
+    }
+
+    public DataRequestWithDeviceCommand(byte command, byte[] requestData) {
+        super(requestData, EMPTY_BYTE_ARRAY);
+        this.command = command;
+    }
+
     public final byte command;
 
     @Override
     public int responseSize(StrongPullupDuration spd) {
-        return 1 + response.length;
+        return super.responseSize(spd) + 1;
     }
 
     @Override
@@ -70,6 +70,11 @@ public class DataRequestWithDeviceCommand extends DataRequest<byte[]> {
         sb.append(", response=[0x");
         for (int i = 0; i < response.length; i++) {
             sb.append(String.format("%02x", response[i]));
+        }
+        sb.append("])");
+        sb.append(", responseReadData=[0x");
+        for (int i = 0; i < responseReadData.length; i++) {
+            sb.append(String.format("%02x", responseReadData[i]));
         }
         sb.append("])");
         return sb.toString();

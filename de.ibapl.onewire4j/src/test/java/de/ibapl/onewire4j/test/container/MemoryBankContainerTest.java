@@ -19,16 +19,18 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package de.ibapl.onewire4j.container;
+package de.ibapl.onewire4j.test.container;
 
 import de.ibapl.onewire4j.AdapterFactory;
 import de.ibapl.onewire4j.OneWireAdapter;
+import de.ibapl.onewire4j.container.MemoryBankContainer;
+import de.ibapl.onewire4j.container.OneWireContainer;
+import de.ibapl.onewire4j.request.data.SearchCommand;
 import de.ibapl.spsw.api.SerialPortSocket;
 import de.ibapl.spsw.api.SerialPortSocketFactory;
 import de.ibapl.spsw.logging.LoggingSerialPortSocket;
 import de.ibapl.spsw.logging.TimeStampLogging;
 import java.io.FileOutputStream;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -43,7 +45,6 @@ import org.junit.jupiter.api.Disabled;
  *
  * @author aploese
  */
-@Disabled
 public class MemoryBankContainerTest {
 
     public MemoryBankContainerTest() {
@@ -73,7 +74,7 @@ public class MemoryBankContainerTest {
 
         adapter = new AdapterFactory().open(lport, 1);
         System.err.print("Addresses:");
-        adapter.searchDevices((OneWireContainer owc) -> {
+        adapter.searchDevices(SearchCommand.SEARCH_ROM, (OneWireContainer owc) -> {
             System.err.append(' ').append(owc.getAddressAsString());
             for (long l : TESTABLE_CONTAINERS) {
                 if (l == owc.getAddress()) {
@@ -109,8 +110,17 @@ public class MemoryBankContainerTest {
     public void testReadMemory() throws Exception {
         System.out.println("readMemory");
         for (MemoryBankContainer mbc : containers) {
-            byte[] data = mbc.readMemory(adapter, 0x00, 8);
-            Assertions.assertEquals(8, data.length);
+            byte[] data;
+            data = mbc.readMemory(adapter, 0x00, 128);
+            Assertions.assertEquals(128, data.length);
+            data = mbc.readMemory(adapter, 0x80, 8);
+            byte[] expected = new byte[]{0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0x00, 0x00};
+            Assertions.assertArrayEquals(expected, data);
+
+            data = mbc.readMemory(adapter, 0x88, 8);
+            expected = new byte[]{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55};
+            Assertions.assertArrayEquals(expected, data);
+
         }
     }
 

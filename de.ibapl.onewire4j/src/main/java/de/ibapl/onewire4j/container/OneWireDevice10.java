@@ -26,30 +26,32 @@ package de.ibapl.onewire4j.container;
  * @author Arne Plöse
  */
 @DeviceInfo(oneWireName = "DS18S20", iButtonName = "DS1920")
-public class OneWireDevice10 extends OneWireDevice implements TemperatureContainer {
+public class OneWireDevice10 extends OneWireDevice implements AlarmTemperatureContainer {
 
     public OneWireDevice10(long address) {
         super(address);
     }
 
     @Override
-    public double getTemperature(ReadScratchpadRequest request) throws ENotProperlyConvertedException {
+    public double getTemperature(ReadScratchpadRequest request) {
 
         // on some parts, namely the 18S20, you can get invalid readings.
         // basically, the detection is that all the upper 8 bits should
         // be the same by sign extension. the error condition (DS18S20
         // returns 185.0+) violated that condition
-        if (((request.response[1] & 0x0ff) != 0x00) && ((request.response[1] & 0x0ff) != 0x0FF)) {
-            throw new RuntimeException("Invalid temperature data!");
+        if ((request.responseReadData[1] != (byte) 0x00) && (request.responseReadData[1] != (byte) 0x0FF)) {
+            throw new RuntimeException("Invalid temperature data in scratchpad!");
         }
 
-        int temp = (request.response[0] & 0x0ff) | (request.response[1] << 8);
-        if (temp == 0x00aa) {
-            // this is the initial value without any conversation done!
-            throw new ENotProperlyConvertedException(85);
-        }
+        int temp = (request.responseReadData[1] << 8) | (request.responseReadData[0] & 0x0ff);
         temp >>= 1;
-        return temp - 0.25 + ((double) request.response[7] - (double) request.response[6]) / request.response[7];
+        return temp - 0.25 + ((double) request.responseReadData[7] - (double) request.responseReadData[6]) / request.responseReadData[7];
+    }
+
+    @Override
+    public boolean isTemperaturePowerOnResetValue(ReadScratchpadRequest request) {
+        int temp = (request.responseReadData[1] << 8) | (request.responseReadData[0] & 0x0ff);
+        return temp == 0x00aa;
     }
 
 }

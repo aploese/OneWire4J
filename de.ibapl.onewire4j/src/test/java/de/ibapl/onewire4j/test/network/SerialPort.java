@@ -19,24 +19,17 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-module de.ibapl.onewire4j {
+package de.ibapl.onewire4j.test.network;
 
-    requires java.logging;
+import java.util.List;
 
-    requires transitive org.osgi.annotation;
-    requires transitive org.osgi.service.component.annotations;
+/**
+ *
+ * @author aploese
+ */
+public class SerialPort {
 
-    requires transitive de.ibapl.spsw.api;
-
-    //TODO error but junit tests need this....
-    uses de.ibapl.spsw.api.SerialPortSocketFactory;
-
-    exports de.ibapl.onewire4j;
-    exports de.ibapl.onewire4j.container;
-    exports de.ibapl.onewire4j.devices;
-    exports de.ibapl.onewire4j.request;
-    exports de.ibapl.onewire4j.request.communication;
-    exports de.ibapl.onewire4j.request.configuration;
-    exports de.ibapl.onewire4j.request.data;
-    exports de.ibapl.onewire4j.utils;
+    public String name;
+    public String adapter;
+    public List<Device> devices;
 }

@@ -49,6 +49,8 @@ public abstract class OneWireDevice implements OneWireContainer {
                 return new OneWireDevice01(address);
             case 0x10:
                 return new OneWireDevice10(address);
+            case 0x26:
+                return new OneWireDevice26(address);
             case 0x28:
                 return new OneWireDevice28(address);
             case 0x2d:

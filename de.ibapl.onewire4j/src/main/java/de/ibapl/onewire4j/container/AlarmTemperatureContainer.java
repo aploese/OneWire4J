@@ -19,24 +19,23 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-module de.ibapl.onewire4j {
+package de.ibapl.onewire4j.container;
 
-    requires java.logging;
+/**
+ *
+ * @author Arne Plöse
+ */
+public interface AlarmTemperatureContainer extends TemperatureContainer {
 
-    requires transitive org.osgi.annotation;
-    requires transitive org.osgi.service.component.annotations;
+    @OneWireDataCommand
+    public final static byte ALARM_SEARCH_CMD = (byte) 0xec;
 
-    requires transitive de.ibapl.spsw.api;
+    default double getAlarmTempHighLimit(ReadScratchpadRequest request) {
+        return request.responseReadData[2];
+    }
 
-    //TODO error but junit tests need this....
-    uses de.ibapl.spsw.api.SerialPortSocketFactory;
+    default double getAlarmTempLowLimit(ReadScratchpadRequest request) {
+        return request.responseReadData[3];
+    }
 
-    exports de.ibapl.onewire4j;
-    exports de.ibapl.onewire4j.container;
-    exports de.ibapl.onewire4j.devices;
-    exports de.ibapl.onewire4j.request;
-    exports de.ibapl.onewire4j.request.communication;
-    exports de.ibapl.onewire4j.request.configuration;
-    exports de.ibapl.onewire4j.request.data;
-    exports de.ibapl.onewire4j.utils;
 }

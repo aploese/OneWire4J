@@ -19,8 +19,9 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package de.ibapl.onewire4j.utils;
+package de.ibapl.onewire4j.test.utils;
 
+import de.ibapl.onewire4j.utils.CRC16;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;

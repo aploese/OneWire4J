@@ -21,14 +21,13 @@
  */
 package de.ibapl.onewire4j.container;
 
-import java.io.IOException;
-import java.time.Instant;
-
 import de.ibapl.onewire4j.OneWireAdapter;
 import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
 import de.ibapl.onewire4j.request.data.DataRequestWithDeviceCommand;
 import de.ibapl.onewire4j.request.data.ReadBytesRequest;
 import de.ibapl.onewire4j.utils.CRC8;
+import java.io.IOException;
+import java.time.Instant;
 
 /**
  *
@@ -45,13 +44,22 @@ public interface TemperatureContainer extends OneWireContainer {
     }
 
     @OneWireDataCommand
-    public final byte READ_POWER_SUPPLY_CMD = (byte) 0xb4;
+    public final static byte COPY_SCRATCHPAD_CMD = (byte) 0x48;
 
     @OneWireDataCommand
-    public final byte CONVERT_TEMPERATURE_CMD = (byte) 0x44;
+    public final static byte READ_POWER_SUPPLY_CMD = (byte) 0xb4;
+
+    @OneWireDataCommand
+    public final static byte CONVERT_TEMPERATURE_CMD = (byte) 0x44;
 
     @OneWireDataCommand
     public final static byte READ_SCRATCHPAD_CMD = (byte) 0xbe;
+
+    @OneWireDataCommand
+    public final static byte RECALLEE_CMD = (byte) 0xb8;
+
+    @OneWireDataCommand
+    public final static byte WRITE_SCRATCHPAD_CMD = (byte) 0x4e;
 
     /**
      * Sends convert to all devices....
@@ -72,14 +80,16 @@ public interface TemperatureContainer extends OneWireContainer {
             adapter.sendTerminatePulse();
         } else {
             adapter.sendCommand(new DataRequestWithDeviceCommand(CONVERT_TEMPERATURE_CMD, 0, 0));
-            final ReadBytesRequest r = new ReadBytesRequest(0, 1);
-            while (adapter.sendCommand(r)[0] != (byte) 0xff) {
+            final ReadBytesRequest r = new ReadBytesRequest(1);
+            adapter.sendCommand(r);
+            while (r.responseReadData[0] != (byte) 0xff) {
                 r.resetState();
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(10);
                 } catch (InterruptedException e) {
                     //no-op
                 }
+                adapter.sendCommand(r);
             }
         }
         return ts;
@@ -93,57 +103,122 @@ public interface TemperatureContainer extends OneWireContainer {
      * @param adapter
      * @return
      * @throws IOException
+     * @todo Mask only temp devices?
      */
-    public static boolean isParasitePower(OneWireAdapter adapter) throws IOException {
+    public static boolean isAnyTempDeviceUsingParasitePower(OneWireAdapter adapter) throws IOException {
+        //TODO Mask only temp devices?
         adapter.sendSkipRomRequest();
 
         //TODO new format ... is available
         DataRequestWithDeviceCommand readPowerSupplyRequest = new DataRequestWithDeviceCommand(READ_POWER_SUPPLY_CMD, 0, 1);
         adapter.sendCommand(readPowerSupplyRequest);
-        return readPowerSupplyRequest.response[0] != (byte) 0xff;
+        return readPowerSupplyRequest.responseReadData[0] != (byte) 0xff;
     }
 
-    default void sendDoConvertRequest(OneWireAdapter adapter) throws IOException {
+    //TODO is this working???
+    default boolean isUsingParasitePower(OneWireAdapter adapter) throws IOException {
         adapter.sendMatchRomRequest(getAddress());
 
-        adapter.sendByteWithPower(CONVERT_TEMPERATURE_CMD, StrongPullupDuration.SPUD_POSITIVE_INFINITY,
-                adapter.getSpeedFromBaudrate());
+        //TODO new format ... is available
+        DataRequestWithDeviceCommand readPowerSupplyRequest = new DataRequestWithDeviceCommand(READ_POWER_SUPPLY_CMD, 0, 1);
+        adapter.sendCommand(readPowerSupplyRequest);
+        return readPowerSupplyRequest.responseReadData[0] != (byte) 0xff;
+    }
 
-        try {
-            Thread.sleep(750);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+    default void sendDoConvertTRequest(OneWireAdapter adapter, boolean parasitePowerNeeded) throws IOException {
+        adapter.sendMatchRomRequest(getAddress());
+
+        if (parasitePowerNeeded) {
+            adapter.sendByteWithPower(CONVERT_TEMPERATURE_CMD, StrongPullupDuration.SPUD_POSITIVE_INFINITY,
+                    adapter.getSpeedFromBaudrate());
+
+            try {
+                Thread.sleep(750);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            adapter.sendTerminatePulse();
+        } else {
+            adapter.sendCommand(new DataRequestWithDeviceCommand(CONVERT_TEMPERATURE_CMD, 0, 0));
+            final ReadBytesRequest r = new ReadBytesRequest(1);
+            adapter.sendCommand(r);
+            while (r.responseReadData[0] != (byte) 0xff) {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    //no-op
+                }
+                r.resetState();
+                adapter.sendCommand(r);
+            }
         }
-        adapter.sendTerminatePulse();
-        // TODO READ Bit???
-        byte b = adapter.sendReadByteRequest();
-        if ((b & 0xff) != 0xFF) {
-            throw new RuntimeException();
+    }
+
+    default void copyScratchpad(OneWireAdapter adapter, boolean parasitePowerNeeded) throws IOException {
+        adapter.sendMatchRomRequest(getAddress());
+        if (parasitePowerNeeded) {
+            adapter.sendByteWithPower(COPY_SCRATCHPAD_CMD, StrongPullupDuration.SPUD_POSITIVE_INFINITY,
+                    adapter.getSpeedFromBaudrate());
+
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            adapter.sendTerminatePulse();
+        } else {
+            adapter.sendCommand(new DataRequestWithDeviceCommand(COPY_SCRATCHPAD_CMD, 0, 0));
+            final ReadBytesRequest r = new ReadBytesRequest(1);
+            adapter.sendCommand(r);
+            while (r.responseReadData[0] != (byte) 0xff) {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    //no-op
+                }
+                r.resetState();
+                adapter.sendCommand(r);
+            }
         }
+    }
+
+    /**
+     * Reacall the alarm trigers from EEPROM and places tehm in the scratchpad
+     *
+     * @param adapter
+     * @throws IOException
+     */
+    default void recallE2(OneWireAdapter adapter) throws IOException {
+        adapter.sendMatchRomRequest(getAddress());
+        adapter.sendCommand(new DataRequestWithDeviceCommand(RECALLEE_CMD, 0, 0));
     }
 
     default void readScratchpad(OneWireAdapter adapter, ReadScratchpadRequest request) throws IOException {
         adapter.sendMatchRomRequest(getAddress());
         adapter.sendCommand(request.resetState());
-        if (CRC8.crc8(request.response) != 0) {
+        if (CRC8.crc8(request.responseReadData) != 0) {
             throw new IOException("CRC mismatch");
         }
     }
 
-    default double convertAndReadTemperature(OneWireAdapter adapter)
-            throws IOException, ENotProperlyConvertedException {
+    default void writeScratchpad(OneWireAdapter adapter, double tL, double tH) throws IOException {
+        adapter.sendMatchRomRequest(getAddress());
+        adapter.sendCommand(new DataRequestWithDeviceCommand(WRITE_SCRATCHPAD_CMD, new byte[]{(byte) tH, (byte) tL}));
+    }
+
+    default double convertAndReadTemperature(OneWireAdapter adapter, boolean parasitePowerNeeded) throws IOException {
+        sendDoConvertTRequest(adapter, parasitePowerNeeded);
         final ReadScratchpadRequest request = new ReadScratchpadRequest();
-        sendDoConvertRequest(adapter);
         readScratchpad(adapter, request);
+        if (isTemperaturePowerOnResetValue(request)) {
+            sendDoConvertTRequest(adapter, parasitePowerNeeded);
+            readScratchpad(adapter, request);
+        }
         return getTemperature(request);
     }
 
-    default double getTemperature(ReadScratchpadRequest request) throws ENotProperlyConvertedException {
-        return request.response[2];
-    }
+    boolean isTemperaturePowerOnResetValue(ReadScratchpadRequest request);
 
-    default double getAlarmTempLowerLimit(ReadScratchpadRequest request) throws ENotProperlyConvertedException {
-        return request.response[3];
-    }
+    double getTemperature(ReadScratchpadRequest request);
 
 }

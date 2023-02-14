@@ -21,15 +21,20 @@
  */
 package de.ibapl.onewire4j.container;
 
-import de.ibapl.onewire4j.OneWireAdapter;
-import java.io.IOException;
-
 /**
  *
  * @author Arne Plöse
  */
 @DeviceInfo(oneWireName = "DS2431", iButtonName = "DS1972")
 public class OneWireDevice2d extends OneWireDevice implements MemoryBankContainer {
+
+    public final static int PAGES = 4;
+    public final static int PAGE_SIZE_IN_BYTE = 32;
+
+    public final static int REGISTER_START_ADDRESS = 0x80;
+
+    public final static byte WRITE_PROTECT = 0x55;
+    public final static byte EPROM_MODE = (byte) 0xaa;
 
     public OneWireDevice2d(long address) {
         super(address);

@@ -25,31 +25,37 @@ import de.ibapl.onewire4j.request.configuration.StrongPullupDuration;
 
 /**
  *
- * @author Arne Plöse
+ * @author Arne Plöse requestData is sent, response is received and if
+ * readTimeSlots is > 0 the read data will be placed in responseReadData.
  */
 public class RawDataRequest extends DataRequest<byte[]> {
+
+    public final static byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
     public RawDataRequest(int requestDataSize, int readTimeSlots) {
         super(readTimeSlots);
         requestData = new byte[requestDataSize];
-        response = new byte[requestDataSize + readTimeSlots];
+        response = new byte[requestDataSize];
+        responseReadData = new byte[readTimeSlots];
     }
 
-    public RawDataRequest(byte[] requestData, byte[] responseArray) {
-        super(responseArray.length - requestData.length);
+    public RawDataRequest(byte[] requestData, byte[] responseReadData) {
+        super(responseReadData.length);
         this.requestData = requestData;
-        this.response = responseArray;
+        this.response = new byte[requestData.length];
+        this.responseReadData = responseReadData;
     }
 
     public RawDataRequest(byte[] requestData) {
-        this(requestData, new byte[requestData.length]);
+        this(requestData, EMPTY_BYTE_ARRAY);
     }
 
     public final byte[] requestData;
+    public final byte[] responseReadData;
 
     @Override
     public int responseSize(StrongPullupDuration spd) {
-        return response.length;
+        return response.length + readTimeSlots;
     }
 
 }

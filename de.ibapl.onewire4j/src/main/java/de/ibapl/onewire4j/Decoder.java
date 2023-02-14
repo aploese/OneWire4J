@@ -77,7 +77,7 @@ public class Decoder {
     public Decoder() {
     }
 
-    Decoder(ByteBuffer buff) {
+    public Decoder(ByteBuffer buff) {
         this.buff = buff;
     }
 
@@ -113,10 +113,10 @@ public class Decoder {
         } else if (request instanceof DataRequest) {
             if (request instanceof SearchCommand) {
                 decodeSearchCommand((SearchCommand) request);
-            } else if (request instanceof RawDataRequest) {
-                decodeRawDataRequest((RawDataRequest) request);
             } else if (request instanceof DataRequestWithDeviceCommand) {
                 decodeDataRequestWithDeviceCommand((DataRequestWithDeviceCommand) request);
+            } else if (request instanceof RawDataRequest) {
+                decodeRawDataRequest((RawDataRequest) request);
             } else {
                 throw new IllegalArgumentException("NOT IMPLEMENTED: " + request.getClass());
             }
@@ -133,9 +133,13 @@ public class Decoder {
 
     private void decodeRawDataRequest(RawDataRequest request) throws IOException {
         if (buff.remaining() < request.response.length) {
-            throw new RuntimeException("ERR");
+            throw new RuntimeException("ERR response");
         }
         buff.get(request.response);
+        if (buff.remaining() < request.responseReadData.length) {
+            throw new RuntimeException("ERR responseReadData");
+        }
+        buff.get(request.responseReadData);
         request.success();
     }
 
@@ -144,8 +148,7 @@ public class Decoder {
         if (request.command != c) {
             throw new IllegalArgumentException(String.format("Wrong command: 0x%02x expected: 0x%02x", c, request.command));
         }
-        buff.get(request.response);
-        request.success();
+        decodeRawDataRequest(request);
     }
 
     private void decodePulseResponse(PulseRequest request) {
@@ -520,14 +523,14 @@ public class Decoder {
         }
     }
 
-    void read(ReadableByteChannel channel, int len) throws IOException {
+    public void read(ReadableByteChannel channel, int len) throws IOException {
         buff.position(0);
         buff.limit(len);
         channel.read(buff);
         buff.flip();
     }
 
-    void read(ReadableByteChannel channel, OneWireRequest<?> request) throws IOException {
+    public void read(ReadableByteChannel channel, OneWireRequest<?> request) throws IOException {
         buff.position(0);
         buff.limit(request.responseSize(spud));
         try {
@@ -539,7 +542,7 @@ public class Decoder {
         buff.flip();
     }
 
-    int capacity() {
+    public int capacity() {
         return buff.capacity();
     }
 

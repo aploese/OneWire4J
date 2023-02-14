@@ -21,24 +21,23 @@
  */
 package de.ibapl.onewire4j.cli;
 
-import java.io.FileOutputStream;
-import java.time.Instant;
-import java.util.LinkedList;
-import java.util.ServiceLoader;
-
 import de.ibapl.onewire4j.AdapterFactory;
 import de.ibapl.onewire4j.OneWireAdapter;
-import de.ibapl.onewire4j.container.ENotProperlyConvertedException;
 import de.ibapl.onewire4j.container.MemoryBankContainer;
 import de.ibapl.onewire4j.container.OneWireContainer;
+import de.ibapl.onewire4j.container.OneWireDevice26;
 import de.ibapl.onewire4j.container.TemperatureContainer;
+import de.ibapl.onewire4j.devices.DS2438WithHIH4031;
+import de.ibapl.onewire4j.request.data.SearchCommand;
 import de.ibapl.spsw.api.SerialPortSocket;
 import de.ibapl.spsw.api.SerialPortSocketFactory;
 import de.ibapl.spsw.logging.LoggingSerialPortSocket;
 import de.ibapl.spsw.logging.TimeStampLogging;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import jdk.jshell.spi.ExecutionControl;
+import java.time.Instant;
+import java.util.LinkedList;
+import java.util.ServiceLoader;
 
 /**
  *
@@ -50,7 +49,7 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws Exception {
-        try (FileOutputStream log = new FileOutputStream("/tmp/owapi-ng.csv")) {
+        try ( FileOutputStream log = new FileOutputStream("/tmp/owapi-ng.csv")) {
             ServiceLoader<SerialPortSocketFactory> spsFactory = ServiceLoader.load(SerialPortSocketFactory.class);
             SerialPortSocketFactory serialPortSocketFactory = spsFactory.iterator().next();
             System.out.println("serialPortSocketFactory " + serialPortSocketFactory.getClass().getName());
@@ -61,8 +60,8 @@ public class Main {
             LoggingSerialPortSocket lport = LoggingSerialPortSocket.wrapWithHexOutputStream(port,
                     new FileOutputStream("/tmp/owapi-ng.log"), false, TimeStampLogging.UTC);
 
-            try (OneWireAdapter adapter = new AdapterFactory().open(lport, 1)) {
-                final boolean parasitePowerNeeded = TemperatureContainer.isParasitePower(adapter);
+            try ( OneWireAdapter adapter = new AdapterFactory().open(lport, 1)) {
+                final boolean parasitePowerNeeded = TemperatureContainer.isAnyTempDeviceUsingParasitePower(adapter);
                 System.err.println("Some device uses parasite power: " + parasitePowerNeeded);
 
                 final LinkedList<OneWireContainer> owcs = new LinkedList<>();
@@ -77,7 +76,7 @@ public class Main {
                 boolean doLoop = false;
                 do {
                     try {
-                        adapter.searchDevices((OneWireContainer owc) -> {
+                        adapter.searchDevices(SearchCommand.SEARCH_ROM, (OneWireContainer owc) -> {
                             System.err.append(' ').append(owc.getAddressAsString());
                         });
                         System.err.println();
@@ -89,7 +88,7 @@ public class Main {
                 } while (doLoop);
 
                 log.write("Timestamp".getBytes());
-                adapter.searchDevices((OneWireContainer owc) -> {
+                adapter.searchDevices(SearchCommand.SEARCH_ROM, (OneWireContainer owc) -> {
                     owcs.add(owc);
                     try {
                         log.write((byte) '\t');
@@ -105,20 +104,51 @@ public class Main {
                     for (OneWireContainer owc : owcs) {
                         if (owc instanceof TemperatureContainer) {
                             final TemperatureContainer tc = (TemperatureContainer) owc;
-                            try {
-                                log.write((byte) '\t');
-                                TemperatureContainer.ReadScratchpadRequest request = new TemperatureContainer.ReadScratchpadRequest();
-                                tc.readScratchpad(adapter, request);
-                                final double temp = tc.getTemperature(request);
+                            log.write((byte) '\t');
+                            TemperatureContainer.ReadScratchpadRequest request = new TemperatureContainer.ReadScratchpadRequest();
+                            tc.readScratchpad(adapter, request);
+                            if (tc.isTemperaturePowerOnResetValue(request)) {
+                                final double temp = tc.convertAndReadTemperature(adapter, parasitePowerNeeded);
                                 log.write(String.valueOf(temp).getBytes());
-                            } catch (ENotProperlyConvertedException e) {
-                                try {
-                                    final double temp = tc.convertAndReadTemperature(adapter);
-                                    log.write(String.valueOf(temp).getBytes());
-                                } catch (ENotProperlyConvertedException e1) {
-                                    log.write("ENotProperlyConvertedException".getBytes());
-                                }
                             }
+                            final double temp = tc.getTemperature(request);
+                            log.write(String.valueOf(temp).getBytes());
+                        } else if (owc instanceof OneWireDevice26) {
+                            final OneWireDevice26 dev26 = (OneWireDevice26) owc;
+                            final DS2438WithHIH4031 humidity = new DS2438WithHIH4031((OneWireDevice26) owc);
+                            final double VAD;
+                            final double VDD;
+                            final double temp;
+
+                            OneWireDevice26.ScratchpadPage0Data page0 = dev26.getScratchpadPage0(adapter, true, true);
+                            temp = page0.getTemperature();
+                            if (page0.isVDD()) {
+                                VDD = page0.getVoltage();
+                                page0.setVDD(false);
+                                dev26.setScratchpadPage0(adapter, page0);
+                                page0 = dev26.getScratchpadPage0(adapter, false, true);
+                                VAD = page0.getVoltage();
+                            } else {
+                                VAD = page0.getVoltage();
+                                page0.setVDD(true);
+                                dev26.setScratchpadPage0(adapter, page0);
+                                page0 = dev26.getScratchpadPage0(adapter, false, true);
+                                VDD = page0.getVoltage();
+
+                            }
+
+                            log.write((byte) '\t');
+                            log.write(String.valueOf(humidity.getHIH4031Humidity(adapter)).getBytes());
+
+                            log.write((byte) '\t');
+                            log.write(String.valueOf(temp).getBytes());
+
+                            log.write((byte) '\t');
+                            log.write(String.valueOf(VDD).getBytes());
+
+                            log.write((byte) '\t');
+                            log.write(String.valueOf(VAD).getBytes());
+
                         } else if (owc instanceof MemoryBankContainer) {
                             final MemoryBankContainer mc = (MemoryBankContainer) owc;
                             byte[] v = mc.readMemory(adapter, 0, 8);

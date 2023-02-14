@@ -122,13 +122,13 @@ public class Encoder {
             }
         } else if (request instanceof DataRequest) {
             if (request instanceof SearchCommand) {
-                buff.put((byte) 0xf0);
-            } else if (request instanceof RawDataRequest) {
-                writeDataBytes(((RawDataRequest) request).requestData, request.readTimeSlots);
+                buff.put(((SearchCommand) request).cmd);
             } else if (request instanceof DataRequestWithDeviceCommand) {
                 final DataRequestWithDeviceCommand r = (DataRequestWithDeviceCommand) request;
                 buff.put(r.command);
                 writeDataBytes(r.requestData, request.readTimeSlots);
+            } else if (request instanceof RawDataRequest) {
+                writeDataBytes(((RawDataRequest) request).requestData, request.readTimeSlots);
             } else {
                 throw new RuntimeException("NOT IMPLEMENTED: " + request.getClass());
             }

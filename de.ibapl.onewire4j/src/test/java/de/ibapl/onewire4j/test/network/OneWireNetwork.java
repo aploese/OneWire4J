@@ -19,25 +19,13 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package de.ibapl.onewire4j.container;
-
-import java.io.IOException;
+package de.ibapl.onewire4j.test.network;
 
 /**
- * Indicates that a conversation was not successful.
  *
- * @author Arne Plöse
+ * @author aploese
  */
-public class ENotProperlyConvertedException extends IOException {
+public class OneWireNetwork {
 
-    private static final long serialVersionUID = -7949470565387666599L;
-    private final double value;
-
-    public double getValue() {
-        return value;
-    }
-
-    public ENotProperlyConvertedException(double value) {
-        this.value = value;
-    }
+    public SerialPort serialPort;
 }

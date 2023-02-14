@@ -19,24 +19,18 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-module de.ibapl.onewire4j {
+module de.ibapl.onewire4j.test {
 
-    requires java.logging;
-
-    requires transitive org.osgi.annotation;
-    requires transitive org.osgi.service.component.annotations;
-
-    requires transitive de.ibapl.spsw.api;
-
-    //TODO error but junit tests need this....
+    requires de.ibapl.onewire4j;
+    requires org.junit.jupiter.api;
+    requires org.junit.jupiter.engine;
+    requires com.fasterxml.jackson.databind;
+    requires com.fasterxml.jackson.dataformat.yaml;
     uses de.ibapl.spsw.api.SerialPortSocketFactory;
 
-    exports de.ibapl.onewire4j;
-    exports de.ibapl.onewire4j.container;
-    exports de.ibapl.onewire4j.devices;
-    exports de.ibapl.onewire4j.request;
-    exports de.ibapl.onewire4j.request.communication;
-    exports de.ibapl.onewire4j.request.configuration;
-    exports de.ibapl.onewire4j.request.data;
-    exports de.ibapl.onewire4j.utils;
+    exports de.ibapl.onewire4j.test;
+    exports de.ibapl.onewire4j.test.container;
+    exports de.ibapl.onewire4j.test.network;
+    exports de.ibapl.onewire4j.test.utils;
+
 }

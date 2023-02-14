@@ -23,10 +23,9 @@ package de.ibapl.onewire4j.container;
 
 import de.ibapl.onewire4j.OneWireAdapter;
 import de.ibapl.onewire4j.request.data.DataRequestWithDeviceCommand;
-import de.ibapl.onewire4j.request.data.RawDataRequest;
+import de.ibapl.onewire4j.request.data.ReadBytesRequest;
 import de.ibapl.onewire4j.utils.CRC16;
 import java.io.IOException;
-import java.util.Arrays;
 
 public interface MemoryBankContainer extends OneWireContainer {
 
@@ -40,19 +39,19 @@ public interface MemoryBankContainer extends OneWireContainer {
         }
 
         public short getAddressFromResponse() {
-            return (short) (((response[1] & 0x00ff) << 8) | (response[0] & 0xff));
+            return (short) (((responseReadData[1] & 0x00ff) << 8) | (responseReadData[0] & 0xff));
         }
 
         public boolean isAA() {
-            return (response[2] & 0x80) == 0x80;
+            return (responseReadData[2] & 0x80) == 0x80;
         }
 
         public boolean isPF() {
-            return (response[2] & 0x20) == 0x20;
+            return (responseReadData[2] & 0x20) == 0x20;
         }
 
         public byte getEndingAddress() {
-            return (byte) (response[2] & 0x07);
+            return (byte) (responseReadData[2] & 0x07);
         }
     }
 
@@ -80,11 +79,7 @@ public interface MemoryBankContainer extends OneWireContainer {
         }
 
         public short getAddressFromResponse() {
-            return (short) (((response[1] & 0x00ff) << 8) | (response[0] & 0xff));
-        }
-
-        public byte[] getCRC() {
-            return Arrays.copyOfRange(response, response.length - 2, response.length);
+            return (short) (((responseReadData[1] & 0x00ff) << 8) | (responseReadData[0] & 0xff));
         }
 
     }
@@ -99,9 +94,9 @@ public interface MemoryBankContainer extends OneWireContainer {
         }
 
         private void setAuthorizationKey(ReadScratchpadRequest readRequest) {
-            requestData[0] = readRequest.response[0];
-            requestData[1] = readRequest.response[1];
-            requestData[2] = readRequest.response[2];
+            requestData[0] = readRequest.responseReadData[0];
+            requestData[1] = readRequest.responseReadData[1];
+            requestData[2] = readRequest.responseReadData[2];
         }
     }
 
@@ -119,10 +114,6 @@ public interface MemoryBankContainer extends OneWireContainer {
             requestData[0] = (byte) (address & 0x00FF);
         }
 
-        private byte[] getResponseData() {
-            return Arrays.copyOfRange(response, 2, response.length);
-        }
-
     }
 
     default public boolean writeToMemory(OneWireAdapter adapter, int startAddress, byte[] data, int from, int to) throws IOException {
@@ -136,8 +127,16 @@ public interface MemoryBankContainer extends OneWireContainer {
 
         CRC16 crc16 = new CRC16();
         crc16.crc16(writeRequest.command);
+        crc16.crc16(writeRequest.response);
+        crc16.crc16(writeRequest.responseReadData);
+        if (!crc16.isOneComplement()) {
+            throw new IOException("CRC mismatch write");
+        }
+
+        crc16.resetCurrentCrc16();
+        crc16.crc16(writeRequest.command);
         crc16.crc16(writeRequest.requestData);
-        crc16.crc16(writeRequest.getCRC());
+        crc16.crc16(writeRequest.responseReadData);
         if (!crc16.isOneComplement()) {
             throw new IOException("CRC mismatch write");
         }
@@ -156,6 +155,7 @@ public interface MemoryBankContainer extends OneWireContainer {
 
         crc16.crc16(readRequest.command);
         crc16.crc16(readRequest.response);
+        crc16.crc16(readRequest.responseReadData);
         if (!crc16.isOneComplement()) {
             throw new IOException("CRC mismatch read");
         }
@@ -165,12 +165,12 @@ public interface MemoryBankContainer extends OneWireContainer {
         copyScratchpadRequest.setAuthorizationKey(readRequest);
         adapter.sendCommand(copyScratchpadRequest);
 
-        RawDataRequest rdr = new RawDataRequest(0, 16);
+        ReadBytesRequest rdr = new ReadBytesRequest(16);
 
         for (int i = 0; i < 100; i++) {
             rdr.resetState();
             adapter.sendCommand(rdr);
-            if (((rdr.response[15] == (byte) 0x55)) || (rdr.response[15] == (byte) 0xaa)) {
+            if (((rdr.responseReadData[15] == (byte) 0x55)) || (rdr.responseReadData[15] == (byte) 0xaa)) {
                 break;
             }
         }
@@ -183,7 +183,7 @@ public interface MemoryBankContainer extends OneWireContainer {
         rm.setAddress(address);
         adapter.sendMatchRomRequest(getAddress());
         adapter.sendCommand(rm);
-        return rm.getResponseData();
+        return rm.responseReadData;
     }
 
 }
