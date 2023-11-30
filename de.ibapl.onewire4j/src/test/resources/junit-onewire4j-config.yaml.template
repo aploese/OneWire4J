@@ -1,0 +1,21 @@
+networks :
+- serialPort :
+   name : /dev/ttyUSB0
+   adapter : DS2480B
+   devices :
+   - address : 7103079779b26728
+     name :
+      Dallas
+      DS18B20
+   - address : 710000190909132d
+     name :
+      Dallas
+      DS2431
+   - address : 6c000009b829bc28
+     name :
+      Dallas
+      18B20
+   - address : 690000024c287526
+     name :
+      Dallas
+      DS2438

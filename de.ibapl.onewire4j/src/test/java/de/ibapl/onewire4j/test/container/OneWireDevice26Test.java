@@ -38,6 +38,7 @@ import de.ibapl.spsw.logging.TimeStampLogging;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -62,9 +63,14 @@ public class OneWireDevice26Test {
 
     @BeforeAll
     public static void setUpClass() throws Exception {
-        File file = new File(OneWireDevice26Test.class.getResource("/junit-onewire4j-config.yaml").getFile());
-        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        NETWORK = mapper.readValue(file, OneWireNetworks.class);
+        URL resource = OneWireDevice26Test.class.getResource("/junit-onewire4j-config.yaml");
+        if (resource == null) {
+            NETWORK = null;
+        } else {
+            File file = new File(resource.getFile());
+            ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+            NETWORK = mapper.readValue(file, OneWireNetworks.class);
+        }
     }
 
     @AfterAll
@@ -73,6 +79,7 @@ public class OneWireDevice26Test {
 
     @BeforeEach
     public void setUp() throws Exception {
+        Assumptions.assumeTrue(NETWORK != null); //stop here if ther is no NETWORK i.e. no config file
         ServiceLoader<SerialPortSocketFactory> spsFactory = ServiceLoader.load(SerialPortSocketFactory.class);
         SerialPortSocketFactory serialPortSocketFactory = spsFactory.iterator().next();
         System.out.println("serialPortSocketFactory " + serialPortSocketFactory.getClass().getName());
@@ -97,7 +104,10 @@ public class OneWireDevice26Test {
 
     @AfterEach
     public void tearDown() throws Exception {
-        adapter.close();
+        if (adapter != null) {
+            adapter.close();
+            adapter = null;
+        }
     }
 
     public OneWireDevice26Test() throws IOException {
