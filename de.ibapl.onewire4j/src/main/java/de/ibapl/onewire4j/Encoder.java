@@ -21,9 +21,6 @@
  */
 package de.ibapl.onewire4j;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
 import de.ibapl.onewire4j.container.OneWireDataCommand;
 import de.ibapl.onewire4j.request.CommandRequest;
 import de.ibapl.onewire4j.request.OneWireRequest;
@@ -49,6 +46,8 @@ import de.ibapl.onewire4j.request.data.DataRequest;
 import de.ibapl.onewire4j.request.data.DataRequestWithDeviceCommand;
 import de.ibapl.onewire4j.request.data.RawDataRequest;
 import de.ibapl.onewire4j.request.data.SearchCommand;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
@@ -76,7 +75,7 @@ public class Encoder {
     /**
      * Create a new instance and set the {@linkplain OutputStream}.
      *
-     * @param os the OutputStream to write to.
+     * @param buff the ByteBuffer to write to.
      */
     public Encoder(ByteBuffer buff) {
         this.buff = buff;

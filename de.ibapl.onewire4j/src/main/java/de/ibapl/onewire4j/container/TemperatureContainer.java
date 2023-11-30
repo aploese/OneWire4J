@@ -103,7 +103,7 @@ public interface TemperatureContainer extends OneWireContainer {
      * @param adapter
      * @return
      * @throws IOException
-     * @todo Mask only temp devices?
+     *
      */
     public static boolean isAnyTempDeviceUsingParasitePower(OneWireAdapter adapter) throws IOException {
         //TODO Mask only temp devices?

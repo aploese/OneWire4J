@@ -21,9 +21,8 @@
  */
 package de.ibapl.onewire4j;
 
-import java.io.IOException;
-
 import de.ibapl.spsw.api.SerialPortSocket;
+import java.io.IOException;
 
 /**
  * Factory to choose a implementation {@link OneWireAdapter}.
@@ -37,9 +36,8 @@ public class AdapterFactory {
      * adapter.
      *
      *
-     * @param serialPortSocketFactory the factory to use.
-     * @param tries number of tries to make this more fault tolerant.
      * @param serialPortSocket the serial port to use.
+     * @param tries number of tries to make this more fault tolerant.
      * @return the created and opened adapter.
      * @throws IOException on error.
      */
