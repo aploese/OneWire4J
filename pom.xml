@@ -35,7 +35,6 @@
         </developer>
     </developers>
 
-    <!-- Licenses -->
     <licenses>
         <license>
             <name>GNU LESSER GENERAL PUBLIC LICENSE, Version 3</name>
@@ -49,10 +48,20 @@
         <system>GitHub Issues</system>
     </issueManagement>
 
-    <!--repositories> <repository> <id>sonatype-nexus-snapshots</id> <name>Sonatype
-    Nexus Snapshots</name> <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    <releases> <enabled>false</enabled> </releases> <snapshots> <enabled>true</enabled>
-    </snapshots> </repository> </repositories -->
+    <!-- We need this for spsw - SNAPSHOTS-->
+    <repositories> 
+        <repository> 
+            <id>sonatype-nexus-snapshots</id> 
+            <name>Sonatype Nexus Snapshots</name> 
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases> 
+                <enabled>false</enabled> 
+            </releases> 
+            <snapshots> 
+                <enabled>true</enabled>
+            </snapshots> 
+        </repository> 
+    </repositories>
 
     <modules>
         <module>de.ibapl.onewire4j</module>
@@ -130,35 +139,35 @@
                     <groupId>com.mycila</groupId>
                     <artifactId>license-maven-plugin</artifactId>
                     <version>4.3</version>
-                <inherited>false</inherited>
-                <configuration>
-                    <failIfMissing>true</failIfMissing>
-                    <aggregate>true</aggregate>
-                    <strictCheck>true</strictCheck>
-                    <properties>
-                        <copyright-range>${project.inceptionYear}-2023</copyright-range>
-                    </properties>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>check-java-headers</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                        <configuration>
-                            <header>header-template-lgpl-java.txt</header>
-                            <mapping>
-                                <java>SLASHSTAR_STYLE</java>
-                            </mapping>
-                            <includes>
-                                <include>**/*.java</include>
-                            </includes>
-                            <excludes>
-                            </excludes>
-                        </configuration>
-                    </execution>
-                </executions>
+                    <inherited>false</inherited>
+                    <configuration>
+                        <failIfMissing>true</failIfMissing>
+                        <aggregate>true</aggregate>
+                        <strictCheck>true</strictCheck>
+                        <properties>
+                            <copyright-range>${project.inceptionYear}-2023</copyright-range>
+                        </properties>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>check-java-headers</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                            <configuration>
+                                <header>header-template-lgpl-java.txt</header>
+                                <mapping>
+                                    <java>SLASHSTAR_STYLE</java>
+                                </mapping>
+                                <includes>
+                                    <include>**/*.java</include>
+                                </includes>
+                                <excludes>
+                                </excludes>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
