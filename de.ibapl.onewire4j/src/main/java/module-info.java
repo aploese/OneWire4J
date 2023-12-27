@@ -23,13 +23,7 @@ module de.ibapl.onewire4j {
 
     requires java.logging;
 
-    requires transitive org.osgi.annotation;
-    requires transitive org.osgi.service.component.annotations;
-
     requires transitive de.ibapl.spsw.api;
-
-    //TODO error but junit tests need this....
-    uses de.ibapl.spsw.api.SerialPortSocketFactory;
 
     exports de.ibapl.onewire4j;
     exports de.ibapl.onewire4j.container;

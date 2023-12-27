@@ -21,12 +21,6 @@
  */
 package de.ibapl.onewire4j;
 
-import java.io.IOException;
-import java.util.function.Consumer;
-import java.util.function.LongConsumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import de.ibapl.onewire4j.container.OneWireContainer;
 import de.ibapl.onewire4j.container.OneWireDevice;
 import de.ibapl.onewire4j.request.CommandRequest;
@@ -62,8 +56,13 @@ import de.ibapl.spsw.api.Parity;
 import de.ibapl.spsw.api.SerialPortSocket;
 import de.ibapl.spsw.api.Speed;
 import de.ibapl.spsw.api.StopBits;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.function.Consumer;
+import java.util.function.LongConsumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class provides an implementation used for accessing the DS2480B.
@@ -86,7 +85,7 @@ public class DS2480BAdapter implements OneWireAdapter {
     public final static int DEFAULT_BUFFER_SIZE = 1024;
 
     /**
-     * Creates a new instance ans sets the SerialPortSocket to use.
+     * Creates a new instance and initialize the serial port with 9600,8,n,1.
      *
      * @param serialPortSocket the {@linkplain SerialPortSocket} to use.
      */
@@ -98,10 +97,11 @@ public class DS2480BAdapter implements OneWireAdapter {
         try {
             serialPort.setSpeed(Speed._9600_BPS);
             serialPort.setDataBits(DataBits.DB_8);
-            serialPort.setStopBits(StopBits.SB_1);
             serialPort.setParity(Parity.NONE);
+            serialPort.setStopBits(StopBits.SB_1);
             serialPort.setFlowControl(FlowControl.getFC_NONE());
             serialPort.setTimeouts(100, 1000, 1000);
+
             encoder = new Encoder(ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE));
             decoder = new Decoder(ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE));
             init();

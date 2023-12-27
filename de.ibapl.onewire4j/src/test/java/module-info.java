@@ -26,7 +26,9 @@ module de.ibapl.onewire4j.test {
     requires org.junit.jupiter.engine;
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.dataformat.yaml;
+
     uses de.ibapl.spsw.api.SerialPortSocketFactory;
+
 
     exports de.ibapl.onewire4j.test;
     exports de.ibapl.onewire4j.test.container;
