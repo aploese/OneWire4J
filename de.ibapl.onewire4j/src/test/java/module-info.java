@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2023, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2023-2024, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -24,6 +24,7 @@ module de.ibapl.onewire4j.test {
     requires de.ibapl.onewire4j;
     requires org.junit.jupiter.api;
     requires org.junit.jupiter.engine;
+    requires transitive org.yaml.snakeyaml;
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.dataformat.yaml;
 

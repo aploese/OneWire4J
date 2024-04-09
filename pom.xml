@@ -118,6 +118,13 @@
                 <artifactId>de.ibapl.spsw.jnhwprovider</artifactId>
                 <version>3.2.0-SNAPSHOT</version>
             </dependency>
+            <!-- TODO this is needed by jackson-dataformat-yaml, but not declared as dependency -->
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <scope>test</scope>
+                <version>2.2</version>
+            </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-yaml</artifactId>
@@ -144,30 +151,24 @@
                         <failIfMissing>true</failIfMissing>
                         <aggregate>true</aggregate>
                         <strictCheck>true</strictCheck>
-                        <properties>
-                            <copyright-range>${project.inceptionYear}-2023</copyright-range>
-                        </properties>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>check-java-headers</id>
-                            <phase>verify</phase>
-                            <goals>
-                                <goal>check</goal>
-                            </goals>
-                            <configuration>
+                        <licenseSets>
+                            <licenseSet>
                                 <header>header-template-lgpl-java.txt</header>
-                                <mapping>
-                                    <java>SLASHSTAR_STYLE</java>
-                                </mapping>
                                 <includes>
                                     <include>**/*.java</include>
                                 </includes>
                                 <excludes>
                                 </excludes>
-                            </configuration>
-                        </execution>
-                    </executions>
+                            </licenseSet>
+                        </licenseSets>
+                    </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.mycila</groupId>
+                            <artifactId>license-maven-plugin-git</artifactId>
+                            <version>4.3</version>
+                        </dependency>
+                    </dependencies>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

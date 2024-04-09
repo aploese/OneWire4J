@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2023, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2018-2024, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *

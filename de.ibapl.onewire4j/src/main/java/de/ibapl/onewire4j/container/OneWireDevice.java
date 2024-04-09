@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2023, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2024, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -21,9 +21,8 @@
  */
 package de.ibapl.onewire4j.container;
 
-import java.io.IOException;
-
 import de.ibapl.onewire4j.OneWireAdapter;
+import java.io.IOException;
 
 /**
  *
@@ -44,20 +43,20 @@ public abstract class OneWireDevice implements OneWireContainer {
      * @return
      */
     public static OneWireDevice fromAdress(long address) {
-        switch ((int) address & 0xff) {
-            case 0x01:
-                return new OneWireDevice01(address);
-            case 0x10:
-                return new OneWireDevice10(address);
-            case 0x26:
-                return new OneWireDevice26(address);
-            case 0x28:
-                return new OneWireDevice28(address);
-            case 0x2d:
-                return new OneWireDevice2d(address);
-            default:
+        return switch ((int) address & 0xff) {
+            case 0x01 ->
+                new OneWireDevice01(address);
+            case 0x10 ->
+                new OneWireDevice10(address);
+            case 0x26 ->
+                new OneWireDevice26(address);
+            case 0x28 ->
+                new OneWireDevice28(address);
+            case 0x2d ->
+                new OneWireDevice2d(address);
+            default ->
                 throw new RuntimeException("Cant handle One wire family: " + Integer.toHexString((int) address & 0xff));
-        }
+        };
     }
 
     //TODO get a readTimeslot???? parasite power

@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2023, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2024, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -88,6 +88,7 @@ public class DS2480BAdapter implements OneWireAdapter {
      * Creates a new instance and initialize the serial port with 9600,8,n,1.
      *
      * @param serialPortSocket the {@linkplain SerialPortSocket} to use.
+     * @throws java.io.IOException
      */
     public DS2480BAdapter(SerialPortSocket serialPortSocket) throws IOException {
         if (!serialPortSocket.isOpen()) {
@@ -224,12 +225,11 @@ public class DS2480BAdapter implements OneWireAdapter {
         for (int i = 0; i < 8; i++) {
             final SingleBitResponse sbr = ((SingleBitRequest) requests[i]).response;
             switch (sbr.bitResult) {
-                case _O_READ_BACK:
-                    break;
-                case _1_READ_BACK:
+                case _O_READ_BACK -> {
+                }
+                case _1_READ_BACK ->
                     result |= (byte) (0x01 << i);
-                    break;
-                default:
+                default ->
                     throw new RuntimeException();
             }
         }
@@ -247,7 +247,7 @@ public class DS2480BAdapter implements OneWireAdapter {
             sbr.dataToSend = (b & 0x01) == 0x01 ? DataToSend.WRITE_1_OR_READ_BIT : DataToSend.WRITE_0_BIT;
             b >>= 1;
             sbr.speed = speed;
-            sbr.armPowerDelivery = (i < 7) ? false : true;
+            sbr.armPowerDelivery = i >= 7;
             requests[i + 1] = sbr;
         }
         sendCommands(requests);
@@ -255,12 +255,11 @@ public class DS2480BAdapter implements OneWireAdapter {
         for (int i = 0; i < 8; i++) {
             final SingleBitResponse sbr = ((SingleBitRequest) requests[i + 1]).response;
             switch (sbr.bitResult) {
-                case _O_READ_BACK:
-                    break;
-                case _1_READ_BACK:
+                case _O_READ_BACK -> {
+                }
+                case _1_READ_BACK ->
                     result |= (byte) (0x01 << i);
-                    break;
-                default:
+                default ->
                     throw new RuntimeException();
             }
         }
@@ -271,17 +270,17 @@ public class DS2480BAdapter implements OneWireAdapter {
     public <R> R sendCommand(OneWireRequest<R> request) throws IOException {
         readGarbage();
         switch (state) {
-            case COMMAND:
+            case COMMAND -> {
                 if (request instanceof DataRequest) {
                     setState(State.DATA);
                 }
-                break;
-            case DATA:
+            }
+            case DATA -> {
                 if ((request instanceof CommandRequest) || (request instanceof CommunicationRequest)) {
                     setState(State.COMMAND);
                 }
-                break;
-            default:
+            }
+            default ->
                 throw new IllegalStateException("Can't hande adapter state: " + state);
         }
         encoder.encode(request);
@@ -297,17 +296,17 @@ public class DS2480BAdapter implements OneWireAdapter {
         readGarbage();
         for (OneWireRequest<?> request : requests) {
             switch (state) {
-                case COMMAND:
+                case COMMAND -> {
                     if (request instanceof DataRequest) {
                         setState(State.DATA);
                     }
-                    break;
-                case DATA:
+                }
+                case DATA -> {
                     if ((request instanceof CommandRequest) || (request instanceof CommunicationRequest)) {
                         setState(State.COMMAND);
                     }
-                    break;
-                default:
+                }
+                default ->
                     throw new IllegalStateException("Can't hande adapter state: " + state);
             }
             encoder.encode(request);
@@ -383,14 +382,12 @@ public class DS2480BAdapter implements OneWireAdapter {
             return;
         }
         switch (state) {
-            case COMMAND:
+            case COMMAND ->
                 encoder.put(Encoder.SWITCH_TO_COMMAND_MODE_BYTE);
-                break;
-            case DATA:
+            case DATA ->
                 encoder.put(Encoder.SWITCH_TO_DATA_MODE_BYTE);
-                break;
-            default:
-                break;
+            default -> {
+            }
         }
     }
 
