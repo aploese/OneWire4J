@@ -55,7 +55,7 @@ public abstract class OneWireDevice implements OneWireContainer {
             case 0x2d ->
                 new OneWireDevice2d(address);
             default ->
-                throw new RuntimeException("Cant handle One wire family: " + Integer.toHexString((int) address & 0xff));
+                throw new RuntimeException("Can't handle One wire family: " + Integer.toHexString((int) address & 0xff));
         };
     }
 
@@ -70,6 +70,10 @@ public abstract class OneWireDevice implements OneWireContainer {
 
     @Override
     public String getAddressAsString() {
+        return address2String(address);
+    }
+
+    public final static String address2String(long address) {
         return String.format("%08x", address);
     }
 

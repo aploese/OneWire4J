@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2023, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2024, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -60,7 +60,8 @@ public class DataRequestWithDeviceCommand extends RawDataRequest {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("DataRequestWithDeviceCommand(command=0x%02x", command));
+        sb.append(this.getClass().getSimpleName());
+        sb.append(String.format("(command=0x%02x", command));
         sb.append(", requestState=").append(requestState);
         sb.append(", requestData=[0x");
         for (int i = 0; i < requestData.length; i++) {

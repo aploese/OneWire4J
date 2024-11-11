@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2023, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2024, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -197,7 +197,7 @@ public interface TemperatureContainer extends OneWireContainer {
         adapter.sendMatchRomRequest(getAddress());
         adapter.sendCommand(request.resetState());
         if (CRC8.crc8(request.responseReadData) != 0) {
-            throw new IOException("CRC mismatch");
+            throw new IOException("CRC mismatch for: " + getAddressAsString() + " request: " + request);
         }
     }
 

@@ -53,7 +53,7 @@ public enum StrongPullupDuration {
             case SPUD_POSITIVE_INFINITY ->
                 "∞";
             default ->
-                throw new RuntimeException("can't handle: " + name());
+                throw new RuntimeException("Can't handle: " + name());
         };
     }
 }

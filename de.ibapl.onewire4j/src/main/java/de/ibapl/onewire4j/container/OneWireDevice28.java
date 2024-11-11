@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2023, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2024, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -35,8 +35,7 @@ public class OneWireDevice28 extends OneWireDevice implements AlarmTemperatureCo
     @Override
     public double getTemperature(ReadScratchpadRequest request) {
         final int intTemperature = (request.responseReadData[1] << 8) | (request.responseReadData[0] & 0xFF); // this converts 2 bytes into int , request.response[1] carries the sign
-        final double result = intTemperature / 16.0; // converts integer to a double
-        return (result);
+        return intTemperature / 16.0; // converts integer to a double
     }
 
     @Override

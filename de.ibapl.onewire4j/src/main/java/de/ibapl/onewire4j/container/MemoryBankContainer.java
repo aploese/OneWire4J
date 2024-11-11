@@ -130,7 +130,7 @@ public interface MemoryBankContainer extends OneWireContainer {
         crc16.crc16(writeRequest.response);
         crc16.crc16(writeRequest.responseReadData);
         if (!crc16.isOneComplement()) {
-            throw new IOException("CRC mismatch write");
+            throw new IOException("CRC mismatch for: " + getAddressAsString() + " request: " + writeRequest);
         }
 
         crc16.resetCurrentCrc16();
@@ -138,7 +138,7 @@ public interface MemoryBankContainer extends OneWireContainer {
         crc16.crc16(writeRequest.requestData);
         crc16.crc16(writeRequest.responseReadData);
         if (!crc16.isOneComplement()) {
-            throw new IOException("CRC mismatch write");
+            throw new IOException("CRC mismatch for: " + getAddressAsString() + " request: " + writeRequest);
         }
 
         crc16.resetCurrentCrc16();
@@ -148,16 +148,16 @@ public interface MemoryBankContainer extends OneWireContainer {
         adapter.sendMatchRomRequest(getAddress());
         adapter.sendCommand(readRequest);
         if (readRequest.isPF()) {
-            throw new IllegalArgumentException("scratchpad is not valid"); // TODO figure out whats wrong ...
+            throw new IllegalArgumentException("scratchpad is not valid" + getAddressAsString() + " request: " + readRequest); // TODO figure out whats wrong ...
         } else if (readRequest.isAA()) {
-            throw new IllegalArgumentException("device did not recocnize write command"); // TODO figure out whats wrong ...
+            throw new IllegalArgumentException("device did not recognize write command " + getAddressAsString() + " request: " + readRequest); // TODO figure out whats wrong ...
         }
 
         crc16.crc16(readRequest.command);
         crc16.crc16(readRequest.response);
         crc16.crc16(readRequest.responseReadData);
         if (!crc16.isOneComplement()) {
-            throw new IOException("CRC mismatch read");
+            throw new IOException("CRC mismatch for: " + getAddressAsString() + " request: " + readRequest);
         }
 
         final CopyScratchpadRequest copyScratchpadRequest = new CopyScratchpadRequest();

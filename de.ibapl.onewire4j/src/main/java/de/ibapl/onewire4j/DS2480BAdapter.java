@@ -230,7 +230,7 @@ public class DS2480BAdapter implements OneWireAdapter {
                 case _1_READ_BACK ->
                     result |= (byte) (0x01 << i);
                 default ->
-                    throw new RuntimeException();
+                    throw new RuntimeException("Can't handle sbr.bitResult: " + sbr.bitResult);
             }
         }
         return result;
@@ -260,7 +260,7 @@ public class DS2480BAdapter implements OneWireAdapter {
                 case _1_READ_BACK ->
                     result |= (byte) (0x01 << i);
                 default ->
-                    throw new RuntimeException();
+                    throw new RuntimeException("Can't handle sbr.bitResult: " + sbr.bitResult);
             }
         }
         return result;
@@ -330,7 +330,7 @@ public class DS2480BAdapter implements OneWireAdapter {
 
         long result = OneWireContainer.addressOf(request.response);
         if (result != address) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("result (" + OneWireDevice.address2String(result) + ") is not adress (" + OneWireDevice.address2String(address) + ")  to match");
         }
     }
 

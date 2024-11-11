@@ -1,6 +1,6 @@
 /*
  * OneWire4J - Drivers for the 1-wire protocol https://github.com/aploese/OneWire4J/
- * Copyright (C) 2017-2023, Arne Plöse and individual contributors as indicated
+ * Copyright (C) 2017-2024, Arne Plöse and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -21,9 +21,8 @@
  */
 package de.ibapl.onewire4j;
 
-import java.util.Arrays;
-
 import de.ibapl.onewire4j.request.data.RawDataRequest;
+import java.util.Arrays;
 
 /**
  *
@@ -60,7 +59,7 @@ public class OWSearchIterator {
         }
 
         if (temp_last_descrepancy == 63) {
-            throw new RuntimeException("Error Nothnig found");
+            throw new RuntimeException("Error Nothing found request: " + searchCommandData);
         }
         // check for the last one
         if ((temp_last_descrepancy == searchLastDiscrepancy) || (temp_last_descrepancy == 0xFF)) {

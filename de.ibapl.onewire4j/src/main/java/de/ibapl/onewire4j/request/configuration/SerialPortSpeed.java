@@ -37,25 +37,25 @@ public enum SerialPortSpeed {
 
     @Override
     public String toString() {
-        switch (this) {
-            case SPS_9_6:
-                return "9600 bps";
-            case SPS_19_2:
-                return "19200 bps";
-            case SPS_57_6:
-                return "57600 bps";
-            case SPS_115_2:
-                return "115200 bps";
-            case SPS_9_6_I:
-                return "9600 bps (inverted)";
-            case SPS_19_2_I:
-                return "19200 bps (inverted)";
-            case SPS_57_6_I:
-                return "57600 bps (inverted)";
-            case SPS_115_2_I:
-                return "115200 bps (inverted)";
-            default:
-                throw new IllegalArgumentException("cant ahndle value: " + name());
-        }
+        return switch (this) {
+            case SPS_9_6 ->
+                "9600 bps";
+            case SPS_19_2 ->
+                "19200 bps";
+            case SPS_57_6 ->
+                "57600 bps";
+            case SPS_115_2 ->
+                "115200 bps";
+            case SPS_9_6_I ->
+                "9600 bps (inverted)";
+            case SPS_19_2_I ->
+                "19200 bps (inverted)";
+            case SPS_57_6_I ->
+                "57600 bps (inverted)";
+            case SPS_115_2_I ->
+                "115200 bps (inverted)";
+            default ->
+                throw new IllegalArgumentException("Can't handle value: " + name());
+        };
     }
 }

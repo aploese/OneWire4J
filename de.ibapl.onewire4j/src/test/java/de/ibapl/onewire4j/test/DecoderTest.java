@@ -22,8 +22,6 @@
 package de.ibapl.onewire4j.test;
 
 import de.ibapl.onewire4j.Decoder;
-import java.io.IOException;
-
 import de.ibapl.onewire4j.request.OneWireRequest;
 import de.ibapl.onewire4j.request.communication.BitResult;
 import de.ibapl.onewire4j.request.communication.DataToSend;
@@ -36,11 +34,10 @@ import de.ibapl.onewire4j.request.configuration.DataSampleOffsetAndWrite0Recover
 import de.ibapl.onewire4j.request.configuration.PullDownSlewRateParam;
 import de.ibapl.onewire4j.request.configuration.SerialPortSpeed;
 import de.ibapl.onewire4j.request.configuration.Write1LowTime;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.Test;
 
 /**

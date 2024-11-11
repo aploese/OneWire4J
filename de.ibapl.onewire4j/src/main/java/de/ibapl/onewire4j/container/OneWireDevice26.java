@@ -86,15 +86,15 @@ public class OneWireDevice26 extends OneWireDevice {
         }
 
         public double getTemperature() {
-            return data[2] + (data[1] & 0xFF) / 256.0; // converts integer to a double
+            return (data[2] | (data[1] & 0xFF)) / 256.0; // converts integer to a double data[2] carries the sign
         }
 
         public double getVoltage() {
-            return ((data[4] << 8) | (data[3] & 0xFF)) / 100.0;
+            return ((((data[4] & 0xFF) << 8) | (data[3] & 0xFF))) / 100.0; // unsigned
         }
 
         public double getCurrent(double valueSensResistor) {
-            return ((data[6] << 8) + data[5]) / (4096 * valueSensResistor);
+            return (((data[6] << 8) | (data[5] & 0xFF))) / (4096 * valueSensResistor); // data[6] carries the sign
         }
 
         public byte getThreshold() {
@@ -125,7 +125,7 @@ public class OneWireDevice26 extends OneWireDevice {
         }
 
         public long getETM() {
-            return data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
+            return (data[0] & 0xff) | ((data[1] & 0xff) << 8) | ((data[2] & 0xff) << 16) | ((data[3] & 0xff) << 24);
         }
 
         public byte getICA() {
@@ -133,10 +133,10 @@ public class OneWireDevice26 extends OneWireDevice {
         }
 
         public short getOffset() {
-            return (short) (data[5] | (data[6] << 8));
+            return (short) ((data[5] & 0xff) | (data[6] << 8));
         }
 
-        public short getReserved() {
+        public byte getReserved() {
             return data[7];
         }
     }
@@ -148,11 +148,11 @@ public class OneWireDevice26 extends OneWireDevice {
         }
 
         public long getDisconnect() {
-            return data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
+            return (data[0] & 0xff) | ((data[1] & 0xff) << 8) | ((data[2] & 0xff) << 16) | ((data[3] & 0xff) << 24);
         }
 
         public long getEndOfCharge() {
-            return data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
+            return (data[0] & 0xff) | ((data[1] & 0xff) << 8) | ((data[2] & 0xff) << 16) | ((data[3] & 0xff) << 24);
         }
 
     }
@@ -164,11 +164,11 @@ public class OneWireDevice26 extends OneWireDevice {
         }
 
         public short getCCA() {
-            return (short) (data[4] | (data[5] << 8));
+            return (short) ((data[4] & 0xff) | ((data[5] & 0xff) << 8));
         }
 
         public short getDCA() {
-            return (short) (data[6] | (data[7] << 8));
+            return (short) ((data[6] & 0xff) | ((data[7] & 0xff) << 8));
         }
 
     }
@@ -247,7 +247,7 @@ public class OneWireDevice26 extends OneWireDevice {
         adapter.sendMatchRomRequest(getAddress());
         adapter.sendCommand(request.resetState());
         if (CRC8.crc8(request.responseReadData) != 0) {
-            throw new IOException("CRC mismatch");
+            throw new IOException("CRC mismatch for: " + getAddressAsString() + " request: " + request);
         }
     }
 
@@ -258,7 +258,7 @@ public class OneWireDevice26 extends OneWireDevice {
         final ReadScratchpadRequest request = new ReadScratchpadRequest(page);
         adapter.sendCommand(request);
         if (CRC8.crc8(request.responseReadData) != 0) {
-            throw new IOException("CRC mismatch");
+            throw new IOException("CRC mismatch for: " + getAddressAsString() + " @page " + page + " request: " + request);
         }
         return request;
     }

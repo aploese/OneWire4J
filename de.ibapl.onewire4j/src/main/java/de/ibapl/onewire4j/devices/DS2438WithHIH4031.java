@@ -58,7 +58,14 @@ public class DS2438WithHIH4031 {
             VDD = data.getVoltage();
 
         }
-        return (((VAD / VDD) - 0.16) / 0.0062) / (1.0546 - 0.00216 * T);
+        final double result = (((VAD / VDD) - 0.16) / 0.0062) / (1.0546 - 0.00216 * T);
+        if (result > 100.0) {
+            throw new RuntimeException("humidity can't be > 100.0% : " + result + "(VAD = " + VAD + " VDD = " + VDD + ")");
+        } else if (result < 0.0) {
+            throw new RuntimeException("humidity can't be < 0.0% : " + result + "(VAD = " + VAD + " VDD = " + VDD + ")");
+        } else {
+            return result;
+        }
     }
 
     public double getTemperature(OneWireAdapter adapter) throws IOException {

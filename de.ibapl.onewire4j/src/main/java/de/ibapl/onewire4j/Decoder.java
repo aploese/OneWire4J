@@ -133,11 +133,11 @@ public class Decoder {
 
     private void decodeRawDataRequest(RawDataRequest request) throws IOException {
         if (buff.remaining() < request.response.length) {
-            throw new RuntimeException("ERR response");
+            throw new RuntimeException("ERR response request: " + request);
         }
         buff.get(request.response);
         if (buff.remaining() < request.responseReadData.length) {
-            throw new RuntimeException("ERR responseReadData");
+            throw new RuntimeException("ERR responseReadData request: " + request);
         }
         buff.get(request.responseReadData);
         request.success();
